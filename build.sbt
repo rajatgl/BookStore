@@ -7,6 +7,8 @@ scalaVersion := "2.12.2"
 resolvers ++= Seq("snapshots", "releases").map(Resolver.sonatypeRepo)
 resolvers += Resolver.sonatypeRepo("snapshots")
 
+coverageEnabled := true
+
 libraryDependencies ++= Seq(
 
   //akka essentials

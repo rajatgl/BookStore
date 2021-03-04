@@ -9,6 +9,10 @@ import scala.util.Random
  */
 object Utilities {
 
+  /**
+   *
+   * @return a random integer
+   */
   def randomNumber(): Int = {
 
     Random.nextInt()

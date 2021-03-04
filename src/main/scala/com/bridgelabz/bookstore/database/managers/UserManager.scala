@@ -8,12 +8,21 @@ import com.bridgelabz.bookstore.utils.Utilities
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class UserManager(database: ICrud[User], otpDatabase: ICrud[Otp]) {
-
+class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
+  /**
+   *
+   * @param email whose pattern is to be verified
+   * @return true if email matches the pattern else false
+   */
   def emailRegex(email: String): Boolean = email.matches(System.getenv("EMAIL_REGEX"))
 
+  /**
+   *
+   * @param email to be checked for existence in database
+   * @return Future of true if email exists in database else false
+   */
   def doesExist(email: String): Future[Boolean] =
-    database.read().map(users => {
+    userDatabase.read().map(users => {
       var isExist = false
       for (user <- users) {
         if (email.equals(user.email)) {
@@ -23,6 +32,11 @@ class UserManager(database: ICrud[User], otpDatabase: ICrud[Otp]) {
       isExist
     })
 
+  /**
+   *
+   * @param user to be registered in the database
+   * @return Future of true if user gets successfully registered else false
+   */
   def register(user: User): Future[Boolean] = {
     if(emailRegex(user.email)){
 
@@ -32,7 +46,7 @@ class UserManager(database: ICrud[User], otpDatabase: ICrud[Otp]) {
           false
         }
         else{
-          database.create(user)
+          userDatabase.create(user)
 
           val newOtp = Otp(Utilities.randomNumber(), user.email)
           otpDatabase.create(newOtp)
