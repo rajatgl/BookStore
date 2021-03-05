@@ -2,7 +2,7 @@ package com.bridgelabz.bookstore.exceptions
 
 import akka.http.javadsl.model.StatusCodes
 
-class BadEmailPattern() extends IBookStoreException {
+class BadEmailPatternException() extends IBookStoreException {
 
   /**
    *

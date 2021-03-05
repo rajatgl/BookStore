@@ -2,8 +2,8 @@ package com.bridgelabz.bookstoretest
 
 import com.bridgelabz.bookstore.database.interfaces.ICrud
 import com.bridgelabz.bookstore.database.managers.UserManager
-import com.bridgelabz.bookstore.exceptions.BadEmailPattern
-import com.bridgelabz.bookstore.models.{Otp, User}
+import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, BadEmailPatternException}
+import com.bridgelabz.bookstore.models.{Address, Otp, User}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures
@@ -34,26 +34,63 @@ class FunctionTest extends AnyFlatSpec with MockitoSugar{
   }
 
   "Does Exist" should "return true if email is registered with database" in {
-    when(iCrudUserMock.read()).thenReturn(Future[Seq[User]](Seq[User](User("test@test.com",""))))
-    assert(Await.result(userManager.doesExist("test@test.com"),100.millis))
+    when(iCrudUserMock.read()).thenReturn(Future[Seq[User]](Seq[User](TestVariables.user())))
+    assert(Await.result(userManager.doesExist("test502"),100.millis))
   }
 
   "Register" should "return failed future in case of bad email pattern" in {
-    val registerTest = userManager.register(User("test",""))
+    val registerTest = userManager.register(TestVariables.user(email = "badEmail"))
     ScalaFutures.whenReady(registerTest.failed){
-      e => e shouldBe a [BadEmailPattern]
+      e => e shouldBe a [BadEmailPatternException]
     }
   }
 
   "Register" should "return false if user is already registered" in {
-    when(iCrudUserMock.read()).thenReturn(Future[Seq[User]](Seq[User](User("test@test.com",""))))
-    assert(!Await.result(userManager.register(User("test@test.com","")),100.millis))
+    when(iCrudUserMock.read()).thenReturn(Future[Seq[User]](Seq[User](TestVariables.user())))
+    assert(!Await.result(userManager.register(TestVariables.user()),100.millis))
   }
 
   "Register" should "return true if user is successfully registered" in {
     when(iCrudUserMock.read()).thenReturn(Future[Seq[User]](Seq[User]()))
-    when(iCrudUserMock.create(User("test@test.com",""))).thenReturn(Future())
+    when(iCrudUserMock.create(TestVariables.user())).thenReturn(Future())
     when(iCrudOtpMock.create(any[Otp])).thenReturn(Future())
-    assert(Await.result(userManager.register(User("test@test.com","")),200.millis))
+    assert(Await.result(userManager.register(TestVariables.user()),200.millis))
+  }
+
+  "Add address" should "should-throw-user-does-not-exist exception in case user does not exist in database" in {
+    when(iCrudUserMock.read()).thenReturn(Future[Seq[User]](Seq[User]()))
+
+    val addAddressTest = userManager.addAddress("random", TestVariables.address())
+    ScalaFutures.whenReady(addAddressTest.failed){
+      e => e shouldBe a [AccountDoesNotExistException]
+    }
+  }
+
+  "Add address" should "should return true if user exists and addresses updated" in {
+    when(iCrudUserMock.read()).thenReturn(Future[Seq[User]](Seq[User](TestVariables.user())))
+    when(iCrudUserMock.update(
+      TestVariables.user().userId,
+      TestVariables.user(addresses = Seq(TestVariables.address())),
+      "userId"
+    )).thenReturn(Future())
+
+    val addAddressTest = userManager.addAddress(TestVariables.user().userId, TestVariables.address())
+    assert(Await.result(addAddressTest, 200.millis))
+  }
+
+  "Get addresses" should "should-throw-user-does-not-exist exception in case user does not exist in database" in {
+    when(iCrudUserMock.read()).thenReturn(Future[Seq[User]](Seq[User]()))
+
+    val addAddressTest = userManager.getAddresses("random")
+    ScalaFutures.whenReady(addAddressTest.failed){
+      e => e shouldBe a [AccountDoesNotExistException]
+    }
+  }
+
+  "Get addresses" should "should return an sequence of addresses if user exists and addresses are fetched" in {
+    when(iCrudUserMock.read()).thenReturn(Future[Seq[User]](Seq[User](TestVariables.user())))
+
+    val addAddressTest = userManager.getAddresses(TestVariables.user().userId)
+    assert(Await.result(addAddressTest, 200.millis).isInstanceOf[Seq[Address]])
   }
 }
