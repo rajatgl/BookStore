@@ -1,7 +1,9 @@
 package com.bridgelabz.bookstore.database.managers
 
 import com.bridgelabz.bookstore.database.interfaces.ICrud
-import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, BadEmailPatternException}
+import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, BadEmailPatternException, PasswordMismatchException}
+import com.bridgelabz.bookstore.jwt.TokenManager
+import com.bridgelabz.bookstore.managers.EmailManager
 import com.bridgelabz.bookstore.models.{Address, Otp, User}
 import com.bridgelabz.bookstore.utils.Utilities
 
@@ -116,6 +118,47 @@ class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
         throw new AccountDoesNotExistException
       }
     })
+  }
+
+  /**
+   *
+   * @param email of the account to be fetched from the database
+   * @return a valid user object if account found else None
+   */
+  def getUser(email: String):Future[Option[User]] ={
+    userDatabase.read().map(users => {
+      var isExist = false
+      var searchedUser:Option[User] = None
+      for (user <- users) {
+        if (email.equals(user.email)) {
+          isExist = true
+          searchedUser = Some(user)
+        }
+      }
+      searchedUser
+    })
+  }
+
+  /**
+   *
+   * @param email belonging to an account
+   * @param password of the corresponding email
+   * @return JWT token if successfully logged in else throw an exception (failed future)
+   */
+  def userLogin(email: String, password: String): Future[String] ={
+    getUser(email).map(user =>
+      if(user.isDefined) {
+        if(user.get.password == password) {
+          TokenManager.generateToken(user.get.userId)
+        }
+        else{
+          throw new PasswordMismatchException
+        }
+      }
+      else{
+        throw new AccountDoesNotExistException
+      }
+    )
   }
 
 }

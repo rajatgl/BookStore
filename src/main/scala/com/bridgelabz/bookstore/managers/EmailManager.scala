@@ -1,4 +1,4 @@
-package com.bridgelabz.bookstore.database.managers
+package com.bridgelabz.bookstore.managers
 
 import com.bridgelabz.bookstore.models.Otp
 import com.typesafe.scalalogging.Logger
@@ -8,6 +8,11 @@ import javax.mail.internet.InternetAddress
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
 
+/**
+ * Created on 3/6/2021.
+ * Class: EmailManager.scala
+ * Author: Rajat G.L.
+ */
 object EmailManager {
 
   private val logger = Logger("EmailManager")
@@ -16,7 +21,7 @@ object EmailManager {
    *
    * @param otp object to be sent for email verification
    */
-  def sendOtp(otp: Otp): Unit ={
+  def sendOtp(otp: Otp): Unit = {
 
     val body: String = s"<a href='http://${System.getenv("Host")}:${System.getenv("Port")}/verify?otp=${otp.data}&email=${otp.email}'>Click here</a> to verify your email."
     val subject: String = "Email Verification"
@@ -32,8 +37,8 @@ object EmailManager {
   def sendEmail(email: String,
                 subject: String,
                 body: String,
-                mailProtocol: String = System.getenv("EMAIL_PROTOCOL"),
-                mailStatusCode: Int = System.getenv("EMAIL_CODE").toInt): Unit = {
+                mailProtocol: String = System.getenv("MAIL_PROTOCOL"),
+                mailStatusCode: Int = System.getenv("MAIL_STATUS").toInt): Unit = {
 
     val mailer = Mailer(mailProtocol, mailStatusCode)
       .auth(true)
