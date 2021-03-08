@@ -2,7 +2,7 @@ package com.bridgelabz.bookstoretest
 
 import com.bridgelabz.bookstore.database.interfaces.ICrud
 import com.bridgelabz.bookstore.database.managers.UserManager
-import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, BadEmailPatternException}
+import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, BadEmailPatternException, UnverifiedAccountException}
 import com.bridgelabz.bookstore.models.{Address, Otp, User}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -54,10 +54,10 @@ class FunctionTest extends AnyFlatSpec with MockitoSugar{
     when(iCrudUserMock.read()).thenReturn(Future[Seq[User]](Seq[User]()))
     when(iCrudUserMock.create(TestVariables.user())).thenReturn(Future())
     when(iCrudOtpMock.create(any[Otp])).thenReturn(Future())
-    assert(Await.result(userManager.register(TestVariables.user()),200.millis))
+    assert(Await.result(userManager.register(TestVariables.user()),500.millis))
   }
 
-  "Add address" should "should-throw-user-does-not-exist exception in case user does not exist in database" in {
+  "Add address" should "throw user-does-not-exist exception in case user does not exist in database" in {
     when(iCrudUserMock.read()).thenReturn(Future[Seq[User]](Seq[User]()))
 
     val addAddressTest = userManager.addAddress("random", TestVariables.address())
@@ -66,8 +66,17 @@ class FunctionTest extends AnyFlatSpec with MockitoSugar{
     }
   }
 
-  "Add address" should "should return true if user exists and addresses updated" in {
-    when(iCrudUserMock.read()).thenReturn(Future[Seq[User]](Seq[User](TestVariables.user())))
+  "Add address" should "throw unverified-user exception in case user is not verified" in {
+    when(iCrudUserMock.read()).thenReturn(Future[Seq[User]](Seq(TestVariables.user())))
+
+    val addAddressTest = userManager.addAddress(TestVariables.user().userId, TestVariables.address())
+    ScalaFutures.whenReady(addAddressTest.failed){
+      e => e shouldBe a [UnverifiedAccountException]
+    }
+  }
+
+  "Add address" should "return true if user exists and addresses updated" in {
+    when(iCrudUserMock.read()).thenReturn(Future[Seq[User]](Seq[User](TestVariables.user(verificationComplete = true))))
     when(iCrudUserMock.update(
       TestVariables.user().userId,
       TestVariables.user(addresses = Seq(TestVariables.address())),
@@ -78,7 +87,7 @@ class FunctionTest extends AnyFlatSpec with MockitoSugar{
     assert(Await.result(addAddressTest, 200.millis))
   }
 
-  "Get addresses" should "should-throw-user-does-not-exist exception in case user does not exist in database" in {
+  "Get addresses" should "throw user-does-not-exist exception in case user does not exist in database" in {
     when(iCrudUserMock.read()).thenReturn(Future[Seq[User]](Seq[User]()))
 
     val addAddressTest = userManager.getAddresses("random")
@@ -87,10 +96,52 @@ class FunctionTest extends AnyFlatSpec with MockitoSugar{
     }
   }
 
-  "Get addresses" should "should return an sequence of addresses if user exists and addresses are fetched" in {
-    when(iCrudUserMock.read()).thenReturn(Future[Seq[User]](Seq[User](TestVariables.user())))
+  "Get addresses" should "throw unverified-user exception in case user is not verified" in {
+    when(iCrudUserMock.read()).thenReturn(Future[Seq[User]](Seq(TestVariables.user())))
+
+    val getAddressTest = userManager.getAddresses(TestVariables.user().userId)
+    ScalaFutures.whenReady(getAddressTest.failed){
+      e => e shouldBe a [UnverifiedAccountException]
+    }
+  }
+
+  "Get addresses" should "return an sequence of addresses if user exists and addresses are fetched" in {
+    when(iCrudUserMock.read()).thenReturn(Future[Seq[User]](Seq[User](TestVariables.user(verificationComplete = true))))
 
     val addAddressTest = userManager.getAddresses(TestVariables.user().userId)
     assert(Await.result(addAddressTest, 200.millis).isInstanceOf[Seq[Address]])
   }
+
+  "login" should "throw bad-email-pattern exception if email has a bad-pattern" in {
+    val loginTest: Future[String] = userManager.login("test", "test")
+    ScalaFutures.whenReady(loginTest.failed){
+      e => e shouldBe a [BadEmailPatternException]
+    }
+  }
+
+  "login" should "throw account-does-not-exist exception if email does not exist in the database" in {
+    when(iCrudUserMock.read()).thenReturn(Future[Seq[User]](Seq[User]()))
+
+    val loginTest: Future[String] = userManager.login(TestVariables.user().email, TestVariables.user().password)
+    ScalaFutures.whenReady(loginTest.failed){
+      e => e shouldBe a [AccountDoesNotExistException]
+    }
+  }
+
+  "login" should "throw unverified-account exception if email is not verified" in {
+    when(iCrudUserMock.read()).thenReturn(Future[Seq[User]](Seq(TestVariables.user())))
+
+    val loginTest: Future[String] = userManager.login(TestVariables.user().email, TestVariables.user().password)
+    ScalaFutures.whenReady(loginTest.failed){
+      e => e shouldBe a [UnverifiedAccountException]
+    }
+  }
+
+  "login" should "return a token if login is successful" in {
+    when(iCrudUserMock.read()).thenReturn(Future[Seq[User]](Seq(TestVariables.user(verificationComplete = true))))
+
+    val loginTest: Future[String] = userManager.login(TestVariables.user().email, TestVariables.user().password)
+    assert(Await.result(loginTest,1500.millis).isInstanceOf[String])
+  }
+
 }

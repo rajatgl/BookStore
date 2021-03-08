@@ -2,7 +2,7 @@ package com.bridgelabz.bookstore.exceptions
 
 import akka.http.javadsl.model.StatusCodes
 
-class AccountDoesNotExistException extends IBookStoreException {
+class PasswordMismatchException extends IBookStoreException {
 
   /**
    *
@@ -14,5 +14,6 @@ class AccountDoesNotExistException extends IBookStoreException {
    *
    * @return a string representing the exception (to assist with printing/logging)
    */
-  override def getMessage: String = ExceptionMessages.messages("ACCOUNT_DOES_NOT_EXIST")
+  override def getMessage: String = ExceptionMessages.messages("PASSWORD_MISMATCH")
+
 }
