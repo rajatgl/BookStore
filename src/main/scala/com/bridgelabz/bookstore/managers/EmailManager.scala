@@ -38,7 +38,7 @@ object EmailManager {
                 subject: String,
                 body: String,
                 mailProtocol: String = System.getenv("MAIL_PROTOCOL"),
-                mailStatusCode: Int = System.getenv("MAIL_STATUS").toInt): Unit = {
+                mailStatusCode: Int = System.getenv("MAIL_STATUS_CODE").toInt): Unit = {
 
     val mailer = Mailer(mailProtocol, mailStatusCode)
       .auth(true)
