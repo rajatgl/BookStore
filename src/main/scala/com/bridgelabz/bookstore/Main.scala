@@ -7,6 +7,7 @@ import akka.http.scaladsl.server.Directives.{complete, extractUri, handleExcepti
 import akka.http.scaladsl.server.{Directives, ExceptionHandler, Route}
 import com.bridgelabz.bookstore.database.interfaces.ICrud
 import com.bridgelabz.bookstore.database.managers.UserManager
+import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseConfig}
 import com.bridgelabz.bookstore.marshallers.OutputMessageJsonSupport
 import com.bridgelabz.bookstore.models.{Otp, OutputMessage, User}
 import com.bridgelabz.bookstore.routes.UserRoutes
@@ -23,8 +24,9 @@ import scala.util.{Failure, Success}
 object Main extends App with OutputMessageJsonSupport {
 
   //server configuration variables
-  protected val host: String = System.getenv("HOST")
-  protected val port: Int = System.getenv("PORT").toInt
+  protected val host: String = sys.env("HOST")
+  protected val port: Int = sys.env("PORT").toInt
+
 
   //actor system and execution context for AkkaHTTP server
   implicit val system: ActorSystem = ActorSystem("Book-Store")
@@ -49,8 +51,8 @@ object Main extends App with OutputMessageJsonSupport {
   }
 
   //All databases
-  val userDatabase: ICrud[User] = ???
-  val otpDatabase: ICrud[Otp] = ???
+  val userDatabase: ICrud[User] = new DatabaseConfig[User]("users",CodecRepository.USER)
+  val otpDatabase: ICrud[Otp] = new DatabaseConfig[Otp]("userOtp",CodecRepository.OTP)
 
   //All managers
   val defaultUserManager: UserManager = new UserManager(userDatabase, otpDatabase)
