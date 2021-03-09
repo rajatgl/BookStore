@@ -2,8 +2,10 @@ package com.bridgelabz.bookstore.database.mongodb
 
 import com.bridgelabz.bookstore.database.interfaces.ICrud
 import com.bridgelabz.bookstore.database.mongodb.CodecRepository.CodecNames
+import com.typesafe.scalalogging.LazyLogging
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.model.Filters.equal
+
 import scala.concurrent.Future
 
 /**
@@ -15,8 +17,8 @@ class DatabaseConfig[T: scala.reflect.ClassTag](collectionName: String,
                                                     codecName: CodecNames,
                                                     databaseName: String = sys.env("DATABASENAME"),
                                                     mongoDbConfig: MongoConfig = new MongoConfig())
-  extends ICrud[T] {
-
+  extends ICrud[T] with LazyLogging{
+  logger.info("inside database config")
   def collection(): MongoCollection[T] = {
 
     val codecRegistry = CodecRepository.getCodecRegistry(codecName)
