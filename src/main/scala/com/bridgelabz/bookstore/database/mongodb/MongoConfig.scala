@@ -1,5 +1,6 @@
 package com.bridgelabz.bookstore.database.mongodb
 
+import com.typesafe.scalalogging.LazyLogging
 import org.bson.codecs.configuration.CodecRegistry
 import org.mongodb.scala.{MongoClient, MongoCollection, MongoDatabase}
 
@@ -8,7 +9,8 @@ import org.mongodb.scala.{MongoClient, MongoCollection, MongoDatabase}
  * Class: MongoConfig.scala
  * Author: Ruchir Dixit
  */
-class MongoConfig(uri: String = s"mongodb://${sys.env("MONGOHOST")}:${sys.env("MONGOPORT")}") {
+class MongoConfig(uri: String = s"mongodb://${sys.env("MONGOHOST")}:${sys.env("MONGOPORT")}") extends LazyLogging{
+  logger.info("inside mongo config")
   private val mongoClient: MongoClient = MongoClient(uri)
 
   def getCollection[T: scala.reflect.ClassTag](collectionName: String,
