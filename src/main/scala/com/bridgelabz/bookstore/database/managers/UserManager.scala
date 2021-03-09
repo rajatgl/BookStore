@@ -146,8 +146,7 @@ class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
               user.password,
               user.verificationComplete
             )
-            val fut = userDatabase.update(userId, newUser, "userId")
-            Await.result(fut, Duration.Inf)
+            userDatabase.update(userId, newUser, "userId")
             didUpdate = true
             logger.info(s"Address updated at ${new Date().getTime}")
           }
