@@ -18,7 +18,8 @@ class RegisterRouteTest extends AnyWordSpec with ScalatestRouteTest with Mockito
   "The service" should {
     "Routes should register a test account for a Post request to /register" in {
       when(mockUserManager.register(
-        TestVariables.user(userId = mockUserManager.generateUserId(TestVariables.user().email))
+        TestVariables.user(userId = mockUserManager.generateUserId(
+          TestVariables.user().email))
       )).thenReturn(Future(true))
 
       val jsonRequest = ByteString(
@@ -37,14 +38,15 @@ class RegisterRouteTest extends AnyWordSpec with ScalatestRouteTest with Mockito
         entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
       )
 
-      postRequest ~> Main.route( mockUserManager) ~> check {
+      postRequest ~> Main.route(mockUserManager) ~> check {
         status.equals(StatusCodes.OK)
       }
     }
 
     "Routes should fail to register a test account for a Post request to /register if account already exist" in {
       when(mockUserManager.register(
-        TestVariables.user(userId = mockUserManager.generateUserId(TestVariables.user().email))
+        TestVariables.user(userId = mockUserManager.generateUserId(
+          TestVariables.user().email))
       )).thenReturn(Future(false))
 
       val jsonRequest = ByteString(
@@ -63,7 +65,7 @@ class RegisterRouteTest extends AnyWordSpec with ScalatestRouteTest with Mockito
         entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
       )
 
-      postRequest ~> Main.route( mockUserManager) ~> check {
+      postRequest ~> Main.route(mockUserManager) ~> check {
         status.equals(StatusCodes.Conflict)
       }
     }
@@ -90,7 +92,7 @@ class RegisterRouteTest extends AnyWordSpec with ScalatestRouteTest with Mockito
         entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
       )
 
-      postRequest ~> Main.route( mockUserManager) ~> check {
+      postRequest ~> Main.route(mockUserManager) ~> check {
         status.equals(StatusCodes.BadRequest)
       }
     }
@@ -117,12 +119,10 @@ class RegisterRouteTest extends AnyWordSpec with ScalatestRouteTest with Mockito
         entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
       )
 
-      postRequest ~> Main.route( mockUserManager) ~> check {
+      postRequest ~> Main.route(mockUserManager) ~> check {
         status.equals(StatusCodes.InternalServerError)
       }
     }
-
-
 
   }
 }

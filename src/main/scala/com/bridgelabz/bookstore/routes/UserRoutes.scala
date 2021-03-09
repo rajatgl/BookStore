@@ -73,8 +73,10 @@ class UserRoutes(userManager: UserManager)
       entity(Directives.as[LoginModel]) { request =>
 
         onComplete(userManager.login(request.email, request.password)) {
-          case Success(value) => respondWithHeaders(RawHeader("Token", value)) {
-            complete(StatusCodes.OK.intValue() -> OutputMessage(StatusCodes.OK.intValue(),
+          case Success(value) =>
+
+            respondWithHeaders(RawHeader("Token", value)) {
+              complete(StatusCodes.OK.intValue() -> OutputMessage(StatusCodes.OK.intValue(),
               "Login Successful"))
           }
           case Failure(exception) =>
