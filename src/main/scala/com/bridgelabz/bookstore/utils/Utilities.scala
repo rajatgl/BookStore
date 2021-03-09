@@ -15,6 +15,6 @@ object Utilities {
    */
   def randomNumber(): Int = {
 
-    Random.nextInt()
+    Math.abs(Random.nextInt())
   }
 }

@@ -16,6 +16,7 @@ import scala.concurrent.Future
 class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
 
   val logger: Logger = Logger("User-Manager")
+
   /**
    *
    * @param email whose pattern is to be verified
@@ -79,6 +80,51 @@ class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
 
   /**
    *
+   * @param otp to be verified
+   * @return future of true if otp verified else false
+   */
+  def verifyOpt(otp: Otp): Future[Boolean] = {
+    otpDatabase.read().map(otps => {
+      var isVerified = false
+      otps.foreach(currentOtp =>
+        if (currentOtp.email.equals(otp.email) && currentOtp.data.equals(otp.data)) {
+          isVerified = true
+          verifyUser(otp.email)
+          otpDatabase.delete(otp.email,"email")
+        }
+      )
+      isVerified
+    })
+  }
+
+  /**
+   *
+   * @param email of the user to be verified
+   * @return future of true if user verified else future fails
+   */
+  def verifyUser(email: String): Future[Boolean] = {
+    getUser(email).map(user => {
+      if(user.isDefined){
+        val newUser = User(
+          user.get.userId,
+          user.get.userName,
+          user.get.mobileNumber,
+          user.get.addresses,
+          user.get.email,
+          user.get.password,
+          verificationComplete = true
+        )
+        userDatabase.update(email, newUser, "email")
+        true
+      }
+      else{
+        throw new AccountDoesNotExistException
+      }
+    })
+  }
+
+  /**
+   *
    * @param userId  of the user whose address is to be updated
    * @param address passed by the user
    * @return future of true if successfully updated else false
@@ -88,12 +134,13 @@ class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
       var didUpdate = false
       for (user <- users) {
         if (user.userId.equals(userId)) {
-          if(user.verificationComplete) {
+          if (user.verificationComplete) {
+            val newAddresses = user.addresses :+ address
             val newUser: User = User(
               userId,
               user.userName,
               user.mobileNumber,
-              user.addresses :+ address,
+              newAddresses,
               user.email,
               user.password,
               user.verificationComplete
@@ -102,7 +149,7 @@ class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
             didUpdate = true
             logger.info(s"Address updated at ${new Date().getTime}")
           }
-          else{
+          else {
             throw new UnverifiedAccountException
           }
         }
@@ -128,12 +175,12 @@ class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
       var doesExist = false
       for (user <- users) {
         if (user.userId.equals(userId)) {
-          if(user.verificationComplete) {
+          if (user.verificationComplete) {
             addresses = user.addresses
             doesExist = true
             logger.info(s"Address successfully fetched at ${new Date().getTime}")
           }
-          else{
+          else {
             throw new UnverifiedAccountException
           }
         }
@@ -173,26 +220,27 @@ class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
    * @return JWT token if successfully logged in else throw an exception (failed future)
    */
   def login(email: String, password: String): Future[String] = {
-    if(emailRegex(email)){
-    getUser(email).map(user =>
-      if (user.isDefined) {
-        if (user.get.password == password) {
-          if(user.get.verificationComplete) {
-            logger.info(s"New login token generated at ${new Date().getTime}")
-            TokenManager.generateToken(user.get.userId)
+    if (emailRegex(email)) {
+      getUser(email).map(user =>
+        if (user.isDefined) {
+          if (user.get.password == password) {
+            if (user.get.verificationComplete) {
+              logger.info(s"New login token generated at ${new Date().getTime}")
+              TokenManager.generateToken(user.get.userId)
+            }
+            else {
+              throw new UnverifiedAccountException
+            }
           }
-          else{
-            throw new UnverifiedAccountException
+          else {
+            throw new PasswordMismatchException
           }
         }
         else {
-          throw new PasswordMismatchException
+          throw new AccountDoesNotExistException
         }
-      }
-      else {
-        throw new AccountDoesNotExistException
-      }
-    )}
+      )
+    }
     else
       Future.failed(new BadEmailPatternException)
   }

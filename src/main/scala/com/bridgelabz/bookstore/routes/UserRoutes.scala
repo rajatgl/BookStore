@@ -4,13 +4,13 @@ import java.util.Date
 
 import akka.http.javadsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.RawHeader
-import akka.http.scaladsl.server.Directives.{complete, entity, headerValueByName, onComplete, path, post, respondWithHeaders}
+import akka.http.scaladsl.server.Directives.{complete, entity, headerValueByName, onComplete, parameters, path, post, respondWithHeaders}
 import akka.http.scaladsl.server.{Directives, Route}
 import com.bridgelabz.bookstore.database.managers.UserManager
 import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, BadEmailPatternException, PasswordMismatchException, UnverifiedAccountException}
 import com.bridgelabz.bookstore.jwt.TokenManager
 import com.bridgelabz.bookstore.marshallers.{AddAddressJsonSupport, LoginJsonSupport, OutputMessageJsonSupport, RegisterJsonSupport}
-import com.bridgelabz.bookstore.models.{AddAddressModel, LoginModel, OutputMessage, RegisterModel, User}
+import com.bridgelabz.bookstore.models.{AddAddressModel, Address, LoginModel, Otp, OutputMessage, RegisterModel, User}
 import com.typesafe.scalalogging.Logger
 
 import scala.concurrent.Future
@@ -105,11 +105,12 @@ class UserRoutes(userManager: UserManager)
    */
   def addAddressRoute: Route = post {
     path("address") {
-      entity(Directives.as[AddAddressModel]) { request =>
+      entity(Directives.as[Address]) { request =>
         headerValueByName("Authorization") { token =>
-          if (TokenManager.isValidToken(token)) {
+          if (TokenManager.isValidToken(token.split(" ")(1))) {
 
-            onComplete(userManager.addAddress(request.userId, request.address)) {
+            val userId = TokenManager.getIdentifier(token.split(" ")(1))
+            onComplete(userManager.addAddress(userId, request)) {
               case Success(value) =>
                 if (value)
                   complete(StatusCodes.OK.intValue() -> OutputMessage(StatusCodes.OK.intValue(),
@@ -151,8 +152,8 @@ class UserRoutes(userManager: UserManager)
 
     path("address") {
       headerValueByName("Authorization") { token =>
-        if (TokenManager.isValidToken(token)) {
-          val userId = userManager.generateUserId(TokenManager.getIdentifier(token))
+        if (TokenManager.isValidToken(token.split(" ")(1))) {
+          val userId = TokenManager.getIdentifier(token.split(" ")(1))
 
           onComplete(userManager.getAddresses(userId)) {
             case Success(value) =>
@@ -177,6 +178,42 @@ class UserRoutes(userManager: UserManager)
             StatusCodes.UNAUTHORIZED.intValue() ->
               OutputMessage(StatusCodes.UNAUTHORIZED.intValue(), "Token invalid, login unsuccessful.")
           )
+        }
+      }
+    }
+  }
+
+  /**
+   *
+   * @return route to verify a user account
+   */
+  def verifyRoute: Route = Directives.get {
+    path("verify") {
+      parameters("otp", "email"){(otp, email) =>
+        val otpData = Otp(otp.toInt, email)
+        val otpFuture = userManager.verifyOpt(otpData)
+        onComplete(otpFuture){
+          case Success(value) =>
+            if(value){
+              complete(
+                StatusCodes.OK.intValue() ->
+                  OutputMessage(StatusCodes.OK.intValue(), "Email verified successfully")
+              )
+            }
+            else{
+              complete(
+                StatusCodes.BAD_REQUEST.intValue() ->
+                  OutputMessage(StatusCodes.BAD_REQUEST.intValue(), "Otp and email don't match.")
+              )
+            }
+
+          case Failure(exception) =>
+
+            logger.error(s"Exception occurred at ${new Date().getTime} and Exception reads: ${exception.getMessage}")
+            complete(
+              StatusCodes.INTERNAL_SERVER_ERROR.intValue() ->
+                OutputMessage(StatusCodes.INTERNAL_SERVER_ERROR.intValue(), "Some error occurred, contact the admin.")
+            )
         }
       }
     }

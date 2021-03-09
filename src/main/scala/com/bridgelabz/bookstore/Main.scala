@@ -68,7 +68,8 @@ object Main extends App with OutputMessageJsonSupport {
         userRoutes.loginRoute,
         userRoutes.registerRoute,
         userRoutes.getAddresses,
-        userRoutes.addAddressRoute
+        userRoutes.addAddressRoute,
+        userRoutes.verifyRoute
       )
     }
   }
