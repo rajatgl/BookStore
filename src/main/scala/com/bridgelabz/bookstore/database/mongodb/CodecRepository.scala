@@ -13,7 +13,7 @@ import org.mongodb.scala.MongoClient.DEFAULT_CODEC_REGISTRY
 object CodecRepository extends Enumeration {
 
   type CodecNames = Value
-  val USER, ADDRESS = Value
+  val USER, OTP = Value
 
 
   private val codecProviderForUser: CodecProvider = Macros.createCodecProvider[User]()
@@ -22,9 +22,9 @@ object CodecRepository extends Enumeration {
     DEFAULT_CODEC_REGISTRY
   )
 
-  private val codecProviderForAddress: CodecProvider = Macros.createCodecProvider[Address]()
-  private val codecRegistryForAddress: CodecRegistry = CodecRegistries.fromRegistries(
-    CodecRegistries.fromProviders(codecProviderForAddress),
+  private val codecProviderForOtp: CodecProvider = Macros.createCodecProvider[Address]()
+  private val codecRegistryForOtp: CodecRegistry = CodecRegistries.fromRegistries(
+    CodecRegistries.fromProviders(codecProviderForOtp),
     DEFAULT_CODEC_REGISTRY
   )
 
@@ -32,7 +32,7 @@ object CodecRepository extends Enumeration {
 
     codecName match{
       case USER => codecRegistryForUser
-      case ADDRESS => codecRegistryForAddress
+      case OTP => codecRegistryForOtp
     }
   }
 }
