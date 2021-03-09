@@ -17,8 +17,10 @@ object CodecRepository extends Enumeration {
 
 
   private val codecProviderForUser: CodecProvider = Macros.createCodecProvider[User]()
+  private val codecProviderForAddress: CodecProvider = Macros.createCodecProvider[Address]()
+
   private val codecRegistryForUser: CodecRegistry = CodecRegistries.fromRegistries(
-    CodecRegistries.fromProviders(codecProviderForUser),
+    CodecRegistries.fromProviders(codecProviderForUser, codecProviderForAddress),
     DEFAULT_CODEC_REGISTRY
   )
 

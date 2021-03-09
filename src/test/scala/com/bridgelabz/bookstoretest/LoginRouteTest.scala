@@ -35,8 +35,9 @@ class LoginRouteTest extends AnyWordSpec with ScalatestRouteTest with MockitoSug
       )
 
       postRequest ~> Main.route(mockUserManager) ~> check {
-        status.equals(StatusCodes.OK)
-        //assert(header("Token").isDefined && header("Token").get.value.equals("TOKEN"))
+        //status.equals(StatusCodes.OK)
+        println(response.toString())
+        assert(header("Token").isDefined && header("Token").get.value.equals("TOKEN"))
       }
     }
   }

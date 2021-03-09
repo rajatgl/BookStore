@@ -11,7 +11,8 @@ import com.bridgelabz.bookstore.utils.Utilities
 import com.typesafe.scalalogging.Logger
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 
 class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
 
@@ -145,7 +146,8 @@ class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
               user.password,
               user.verificationComplete
             )
-            userDatabase.update(userId, newUser, "userId")
+            val fut = userDatabase.update(userId, newUser, "userId")
+            Await.result(fut, Duration.Inf)
             didUpdate = true
             logger.info(s"Address updated at ${new Date().getTime}")
           }
