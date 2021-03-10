@@ -1,6 +1,6 @@
 package com.bridgelabz.bookstoretest
 
-import com.bridgelabz.bookstore.models.{Address, User}
+import com.bridgelabz.bookstore.models.{Address, Otp, User}
 
 /**
  * Created on 3/5/2021.
@@ -26,4 +26,9 @@ object TestVariables {
               pinCode: String = "000000"): Address =
 
     Address(apartmentNumber, apartmentName, streetAddress, landMark, state, pinCode)
+
+  def otp(data: Int = 123,
+          email: String = "test@test.com"): Otp =
+
+    Otp(data,email)
 }

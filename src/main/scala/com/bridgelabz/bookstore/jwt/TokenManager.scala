@@ -23,13 +23,13 @@ object TokenManager {
                     header: JwtHeader = JwtHeader(System.getenv("ENCRYPTION_TYPE")),
                     secretKey: String = System.getenv("SECRET_KEY")): String = {
 
-    val claimSet = JwtClaimsSet(
+    val payLoad = JwtClaimsSet(
       Map(
         "identifier" -> identifier,
         "expiredAt" -> (System.currentTimeMillis() + TimeUnit.DAYS.toMillis(tokenExpiryPeriodInDays))
       )
     )
-    JsonWebToken(header, claimSet, secretKey)
+    JsonWebToken(header, payLoad, secretKey)
   }
 
   /**
@@ -47,7 +47,7 @@ object TokenManager {
    */
   def getPayloadAsMap(token: String): Map[String, String] =
     JsonWebToken.unapply(token) match {
-      case Some(value) => value._2.asSimpleMap.getOrElse(Map.empty[String, String])
+      case Some(value) => value._2.asSimpleMap.get
       case None => Map.empty[String, String]
     }
 

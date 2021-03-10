@@ -11,8 +11,7 @@ import com.bridgelabz.bookstore.utils.Utilities
 import com.typesafe.scalalogging.Logger
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Future
 
 class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
 
@@ -242,8 +241,9 @@ class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
         }
       )
     }
-    else
+    else {
       Future.failed(new BadEmailPatternException)
+    }
   }
 
 }

@@ -15,7 +15,7 @@ import scala.concurrent.Future
  */
 class DatabaseConfig[T: scala.reflect.ClassTag](collectionName: String,
                                                     codecName: CodecNames,
-                                                    databaseName: String = sys.env("DATABASENAME"),
+                                                    databaseName: String = sys.env("DATABASE_NAME"),
                                                     mongoDbConfig: MongoConfig = new MongoConfig())
   extends ICrud[T] with LazyLogging{
   logger.info("inside database config")

@@ -23,7 +23,10 @@ object EmailManager {
    */
   def sendOtp(otp: Otp): Unit = {
 
-    val body: String = s"<a href='http://${System.getenv("Host")}:${System.getenv("Port")}/verify?otp=${otp.data}&email=${otp.email}'>Click here</a> to verify your email."
+    val body: String =
+      s"""
+         | Click here: http://${System.getenv("HOST")}:${System.getenv("PORT")}/verify?otp=${otp.data}&email=${otp.email}
+         |  to verify your email.""".stripMargin
     val subject: String = "Email Verification"
 
     sendEmail(otp.email, subject, body)
