@@ -1,7 +1,6 @@
 package com.bridgelabz.bookstore.routes
 
 import java.util.Date
-
 import akka.http.javadsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Directives.{complete, entity, headerValueByName, onComplete, parameters, path, post, respondWithHeaders}
@@ -10,9 +9,8 @@ import com.bridgelabz.bookstore.database.managers.UserManager
 import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, BadEmailPatternException, PasswordMismatchException, UnverifiedAccountException}
 import com.bridgelabz.bookstore.jwt.TokenManager
 import com.bridgelabz.bookstore.marshallers.{AddAddressJsonSupport, LoginJsonSupport, OutputMessageJsonSupport, RegisterJsonSupport}
-import com.bridgelabz.bookstore.models.{AddAddressModel, Address, LoginModel, Otp, OutputMessage, RegisterModel, User}
+import com.bridgelabz.bookstore.models._
 import com.typesafe.scalalogging.Logger
-
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
@@ -42,12 +40,13 @@ class UserRoutes(userManager: UserManager)
           request.password))
         onComplete[Boolean](registerFuture) {
           case Success(value) =>
-            if (value)
+            if (value) {
               complete(StatusCodes.OK.intValue() -> OutputMessage(StatusCodes.OK.intValue(),
                 "Registration Successful"))
-            else
+            } else {
               complete(StatusCodes.CONFLICT.intValue() -> OutputMessage(StatusCodes.CONFLICT.intValue(),
                 "Registration Failed, provided email is already registered"))
+            }
           case Failure(exception) =>
             logger.error(s"Error occurred at ${new Date().getTime}: Exception reads: ${exception.getMessage}")
             exception match {
@@ -107,17 +106,19 @@ class UserRoutes(userManager: UserManager)
     path("address") {
       entity(Directives.as[Address]) { request =>
         headerValueByName("Authorization") { token =>
+
           if (TokenManager.isValidToken(token.split(" ")(1))) {
 
             val userId = TokenManager.getIdentifier(token.split(" ")(1))
             onComplete(userManager.addAddress(userId, request)) {
               case Success(value) =>
-                if (value)
+                if (value) {
                   complete(StatusCodes.OK.intValue() -> OutputMessage(StatusCodes.OK.intValue(),
                     "Address added successfully."))
-                else
+                } else {
                   complete(StatusCodes.INTERNAL_SERVER_ERROR.intValue() -> OutputMessage(StatusCodes.INTERNAL_SERVER_ERROR.intValue(),
                     "Address could not be added. Please contact the admin."))
+                }
               case Failure(exception) =>
                 logger.error(s"Error occurred at ${new Date().getTime}: Exception reads: ${exception.getMessage}")
                 exception match {

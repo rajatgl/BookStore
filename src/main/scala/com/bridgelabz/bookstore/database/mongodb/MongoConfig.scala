@@ -9,7 +9,7 @@ import org.mongodb.scala.{MongoClient, MongoCollection, MongoDatabase}
  * Class: MongoConfig.scala
  * Author: Ruchir Dixit
  */
-class MongoConfig(uri: String = s"mongodb://${sys.env("MONGOHOST")}:${sys.env("MONGOPORT")}") extends LazyLogging{
+class MongoConfig(uri: String = s"mongodb://${sys.env("MONGO_HOST")}:${sys.env("MONGO_PORT")}") extends LazyLogging{
   logger.info("inside mongo config")
   private val mongoClient: MongoClient = MongoClient(uri)
 
