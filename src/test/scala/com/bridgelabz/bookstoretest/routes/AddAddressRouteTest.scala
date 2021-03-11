@@ -1,4 +1,4 @@
-package com.bridgelabz.bookstoretest.routetests
+package com.bridgelabz.bookstoretest.routes
 
 import akka.http.javadsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.OAuth2BearerToken

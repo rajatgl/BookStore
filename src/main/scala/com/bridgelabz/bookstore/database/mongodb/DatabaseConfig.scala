@@ -22,7 +22,8 @@ class DatabaseConfig[T: scala.reflect.ClassTag](collectionName: String,
   def collection(): MongoCollection[T] = {
 
     val codecRegistry = CodecRepository.getCodecRegistry(codecName)
-    mongoDbConfig.getCollection[T](collectionName, codecRegistry, databaseName)
+    val collection = mongoDbConfig.getCollection[T](collectionName, codecRegistry, databaseName)
+    collection
   }
 
   /**

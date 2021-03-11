@@ -1,10 +1,10 @@
 package com.bridgelabz.bookstore.models
 
-case class Product(ProductId: String,
+case class Product(productId: String,
                    author: String,
                    title: String,
                    image: String,
                    quantity: String,
-                   price: String,
+                   price: Double,
                    description: String
                   )
