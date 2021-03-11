@@ -1,7 +1,6 @@
 package com.bridgelabz.bookstore.database.managers
 
 import java.util.Date
-
 import com.bridgelabz.bookstore.database.interfaces.ICrud
 import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, BadEmailPatternException, PasswordMismatchException, UnverifiedAccountException}
 import com.bridgelabz.bookstore.jwt.TokenManager
@@ -9,10 +8,8 @@ import com.bridgelabz.bookstore.managers.EmailManager
 import com.bridgelabz.bookstore.models.{Address, Otp, User}
 import com.bridgelabz.bookstore.utils.Utilities
 import com.typesafe.scalalogging.Logger
-
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Future
 
 class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
 
