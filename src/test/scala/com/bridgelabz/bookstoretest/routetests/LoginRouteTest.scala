@@ -1,4 +1,4 @@
-package com.bridgelabz.bookstoretest
+package com.bridgelabz.bookstoretest.routetests
 
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Route
@@ -7,6 +7,7 @@ import akka.util.ByteString
 import com.bridgelabz.bookstore.database.managers.UserManager
 import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, BadEmailPatternException, PasswordMismatchException, UnverifiedAccountException}
 import com.bridgelabz.bookstore.routes.UserRoutes
+import com.bridgelabz.bookstoretest.TestVariables
 import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.wordspec.AnyWordSpec

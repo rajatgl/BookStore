@@ -1,4 +1,4 @@
-package com.bridgelabz.bookstoretest
+package com.bridgelabz.bookstoretest.routetests
 
 import akka.http.javadsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
@@ -8,6 +8,7 @@ import com.bridgelabz.bookstore.database.managers.UserManager
 import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, UnverifiedAccountException}
 import com.bridgelabz.bookstore.jwt.TokenManager
 import com.bridgelabz.bookstore.routes.UserRoutes
+import com.bridgelabz.bookstoretest.TestVariables
 import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.wordspec.AnyWordSpec
