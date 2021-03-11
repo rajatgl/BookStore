@@ -239,8 +239,9 @@ class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
         }
       )
     }
-    else
+    else {
       Future.failed(new BadEmailPatternException)
+    }
   }
 
 }

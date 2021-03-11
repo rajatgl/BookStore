@@ -1,6 +1,6 @@
 package com.bridgelabz.bookstore.database.mongodb
 
-import com.bridgelabz.bookstore.models.{Address, Otp, User}
+import com.bridgelabz.bookstore.models._
 import org.bson.codecs.configuration.{CodecProvider, CodecRegistries, CodecRegistry}
 import org.mongodb.scala.bson.codecs.Macros
 import org.mongodb.scala.MongoClient.DEFAULT_CODEC_REGISTRY
@@ -13,7 +13,7 @@ import org.mongodb.scala.MongoClient.DEFAULT_CODEC_REGISTRY
 object CodecRepository extends Enumeration {
 
   type CodecNames = Value
-  val USER, OTP = Value
+  val USER, OTP, PRODUCT = Value
 
 
   private val codecProviderForUser: CodecProvider = Macros.createCodecProvider[User]()
@@ -30,11 +30,18 @@ object CodecRepository extends Enumeration {
     DEFAULT_CODEC_REGISTRY
   )
 
-  def getCodecRegistry[T](codecName: CodecNames): CodecRegistry = {
+  private val codecProviderForProduct: CodecProvider = Macros.createCodecProvider[Product]()
+  private val codecRegistryForProduct: CodecRegistry = CodecRegistries.fromRegistries(
+    CodecRegistries.fromProviders(codecProviderForProduct),
+    DEFAULT_CODEC_REGISTRY
+  )
+
+  def getCodecRegistry(codecName: CodecNames): CodecRegistry = {
 
     codecName match{
       case USER => codecRegistryForUser
       case OTP => codecRegistryForOtp
+      case PRODUCT => codecRegistryForProduct
     }
   }
 }

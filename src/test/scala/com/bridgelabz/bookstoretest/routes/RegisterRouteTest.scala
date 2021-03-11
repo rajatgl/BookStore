@@ -1,11 +1,13 @@
-package com.bridgelabz.bookstoretest
+package com.bridgelabz.bookstoretest.routes
 
-import akka.http.scaladsl.model.{HttpEntity, HttpMethods, HttpRequest, MediaTypes, StatusCodes}
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.util.ByteString
-import com.bridgelabz.bookstore.Main
 import com.bridgelabz.bookstore.database.managers.UserManager
 import com.bridgelabz.bookstore.exceptions.BadEmailPatternException
+import com.bridgelabz.bookstore.routes.UserRoutes
+import com.bridgelabz.bookstoretest.TestVariables
 import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.wordspec.AnyWordSpec
@@ -13,8 +15,15 @@ import org.scalatestplus.mockito.MockitoSugar
 
 import scala.concurrent.Future
 
-class RegisterRouteTest extends AnyWordSpec with ScalatestRouteTest with MockitoSugar with ScalaFutures {
+class RegisterRouteTest
+  extends AnyWordSpec
+    with ScalatestRouteTest
+    with MockitoSugar
+    with ScalaFutures {
+
   val mockUserManager: UserManager = mock[UserManager]
+  lazy val routes: Route = new UserRoutes(mockUserManager).registerRoute
+
   "The service" should {
     "Routes should register a test account for a Post request to /register" in {
       when(mockUserManager.register(
@@ -25,10 +34,10 @@ class RegisterRouteTest extends AnyWordSpec with ScalatestRouteTest with Mockito
       val jsonRequest = ByteString(
         s"""
             {
-              "userName": ${TestVariables.user().userName},
-              "mobileNumber": ${TestVariables.user().mobileNumber},
-              "email": ${TestVariables.user().email},
-              "password": ${TestVariables.user().password}
+              "userName": "${TestVariables.user().userName}",
+              "mobileNumber": "${TestVariables.user().mobileNumber}",
+              "email": "${TestVariables.user().email}",
+              "password": "${TestVariables.user().password}"
             }
         """.stripMargin
       )
@@ -38,8 +47,8 @@ class RegisterRouteTest extends AnyWordSpec with ScalatestRouteTest with Mockito
         entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
       )
 
-      postRequest ~> Main.route(mockUserManager) ~> check {
-        status.equals(StatusCodes.OK)
+      postRequest ~> routes ~> check {
+        assert(status === StatusCodes.OK)
       }
     }
 
@@ -52,10 +61,10 @@ class RegisterRouteTest extends AnyWordSpec with ScalatestRouteTest with Mockito
       val jsonRequest = ByteString(
         s"""
             {
-              "userName": ${TestVariables.user().userName},
-              "mobileNumber": ${TestVariables.user().mobileNumber},
-              "email": ${TestVariables.user().email},
-              "password": ${TestVariables.user().password}
+              "userName": "${TestVariables.user().userName}",
+              "mobileNumber": "${TestVariables.user().mobileNumber}",
+              "email": "${TestVariables.user().email}",
+              "password": "${TestVariables.user().password}"
             }
         """.stripMargin
       )
@@ -65,8 +74,8 @@ class RegisterRouteTest extends AnyWordSpec with ScalatestRouteTest with Mockito
         entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
       )
 
-      postRequest ~> Main.route(mockUserManager) ~> check {
-        status.equals(StatusCodes.Conflict)
+      postRequest ~> routes ~> check {
+        assert(status === StatusCodes.Conflict)
       }
     }
 
@@ -79,10 +88,10 @@ class RegisterRouteTest extends AnyWordSpec with ScalatestRouteTest with Mockito
       val jsonRequest = ByteString(
         s"""
             {
-              "userName": ${TestVariables.user().userName},
-              "mobileNumber": ${TestVariables.user().mobileNumber},
-              "email": ${TestVariables.user().email},
-              "password": ${TestVariables.user().password}
+              "userName": "${TestVariables.user().userName}",
+              "mobileNumber": "${TestVariables.user().mobileNumber}",
+              "email": "${TestVariables.user().email}",
+              "password": "${TestVariables.user().password}"
             }
         """.stripMargin
       )
@@ -92,8 +101,8 @@ class RegisterRouteTest extends AnyWordSpec with ScalatestRouteTest with Mockito
         entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
       )
 
-      postRequest ~> Main.route(mockUserManager) ~> check {
-        status.equals(StatusCodes.BadRequest)
+      postRequest ~> routes ~> check {
+        assert(status===StatusCodes.BadRequest)
       }
     }
 
@@ -106,10 +115,10 @@ class RegisterRouteTest extends AnyWordSpec with ScalatestRouteTest with Mockito
       val jsonRequest = ByteString(
         s"""
             {
-              "userName": ${TestVariables.user().userName},
-              "mobileNumber": ${TestVariables.user().mobileNumber},
-              "email": ${TestVariables.user().email},
-              "password": ${TestVariables.user().password}
+              "userName": "${TestVariables.user().userName}",
+              "mobileNumber": "${TestVariables.user().mobileNumber}",
+              "email": "${TestVariables.user().email}",
+              "password": "${TestVariables.user().password}"
             }
         """.stripMargin
       )
@@ -119,8 +128,8 @@ class RegisterRouteTest extends AnyWordSpec with ScalatestRouteTest with Mockito
         entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
       )
 
-      postRequest ~> Main.route(mockUserManager) ~> check {
-        status.equals(StatusCodes.InternalServerError)
+      postRequest ~> routes ~> check {
+        assert(status===StatusCodes.InternalServerError)
       }
     }
 
