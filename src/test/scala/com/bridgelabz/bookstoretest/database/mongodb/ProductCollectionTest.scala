@@ -18,18 +18,18 @@ class ProductCollectionTest extends AnyFlatSpec{
     assert(createTest.toString === "The operation completed successfully")
   }
 
-  "When searched for otp list" should "return Future " in {
+  "When searched for product" should "return Future of list " in {
     val readTest = Await.result(productCollection.read(), 1500.seconds)
     assert(readTest.length === 1)
   }
 
-  "When updated otp using email" should "return Future of Updated " in {
+  "When updated product using productId" should "return Future of Updated " in {
     val product = TestVariables.product()
     val updateTest = Await.result(productCollection.update(TestVariables.product().productId, product, "productId"), 1500.seconds)
     assert(updateTest.toString === "AcknowledgedUpdateResult{matchedCount=1, modifiedCount=1, upsertedId=null}")
   }
 
-  "When deleted otp" should "return Future of Deleted " in {
+  "When deleted product using productId" should "return Future of Deleted " in {
     val deleteTest = Await.result(productCollection.delete(TestVariables.product().productId, "productId"), 1500.seconds)
     assert(deleteTest.toString === "AcknowledgedDeleteResult{deletedCount=1}")
   }
