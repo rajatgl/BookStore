@@ -39,7 +39,7 @@ object TestVariables {
               title: String = "TestProduct",
               image: String = "12323434",
               quantity: String = "2",
-              price: Double = 3000,
+              price: String = "3000",
               description: String = "This is a test product"): Product =
 
     Product(productId,author,title,image,quantity,price,description)
