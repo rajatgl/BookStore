@@ -23,6 +23,7 @@ import scala.util.{Failure, Success}
  */
 object Main extends App with OutputMessageJsonSupport {
 
+  // $COVERAGE-OFF$
   //server configuration variables
   protected val host: String = sys.env("HOST")
   protected val port: Int = sys.env("PORT").toInt

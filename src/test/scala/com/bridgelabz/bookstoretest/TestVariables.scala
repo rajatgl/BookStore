@@ -36,7 +36,7 @@ object TestVariables {
 
   def product(productId: Int = 1,
               author: String = "Xrnes",
-              title: String = "TestProduct",
+              title: String = "HiBook",
               image: String = "12323434",
               quantity: Int = 2,
               price: Double = 3000,

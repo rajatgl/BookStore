@@ -11,9 +11,9 @@ import scala.concurrent.Future
  * Class: ProductTable.scala
  * Author: Rajat G.L.
  */
-class ProductTable(tableName: String) extends ICrud[Product]{
+class ProductTable(tableName: String) extends ICrud[Product] {
 
-  private def createTable()= {
+  private def createTable() = {
     val createQuery: String =
       s"""
          |CREATE TABLE IF NOT EXISTS $tableName
@@ -49,12 +49,11 @@ class ProductTable(tableName: String) extends ICrud[Product]{
          |  ${entity.quantity},
          |  ${entity.price},
          |  "${entity.description}" )""".stripMargin
-
-    if(MySqlUtils.executeUpdate(query) > 0){
-      Future.successful(true)
+    try {
+        Future.successful(MySqlUtils.executeUpdate(query) > 0)
     }
-    else{
-      Future.failed(new Exception("Create-Product: FAILED"))
+    catch{
+      case exception: Exception => Future.failed(new Exception("Create-Product: FAILED"))
     }
   }
 
@@ -62,8 +61,7 @@ class ProductTable(tableName: String) extends ICrud[Product]{
    *
    * @return sequence of objects in the database
    */
-  override def read(): Future[Seq[Product]] =
-  {
+  override def read(): Future[Seq[Product]] = {
     val query = s"SELECT * FROM $tableName"
     Future(MySqlUtils.executeQuery(query))
   }
@@ -89,10 +87,10 @@ class ProductTable(tableName: String) extends ICrud[Product]{
          | WHERE $fieldName = "$identifier"
          | """.stripMargin
 
-    if(MySqlUtils.executeUpdate(query) > 0){
+    if (MySqlUtils.executeUpdate(query) > 0) {
       Future.successful(true)
     }
-    else{
+    else {
       Future.failed(new Exception("Update-Product: FAILED"))
     }
   }
@@ -111,10 +109,10 @@ class ProductTable(tableName: String) extends ICrud[Product]{
          | WHERE $fieldName = "$identifier"
          | """.stripMargin
 
-    if(MySqlUtils.executeUpdate(query) > 0){
+    if (MySqlUtils.executeUpdate(query) > 0) {
       Future.successful(true)
     }
-    else{
+    else {
       Future.failed(new Exception("Delete-Product: FAILED"))
     }
   }

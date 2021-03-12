@@ -20,6 +20,8 @@ libraryDependencies ++= Seq(
 
   //mysql dependency
   "mysql" % "mysql-connector-java" % "5.1.12",
+  "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.36.0" % "test",
+  "com.dimafeng" %% "testcontainers-scala-mysql" % "0.36.0" % "test",
 
   //spray-json for marshalling and unmarshalling the data
   "com.typesafe.akka" %% "akka-http-spray-json" % "10.2.2",
