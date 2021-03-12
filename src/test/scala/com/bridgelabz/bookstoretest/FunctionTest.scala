@@ -41,7 +41,7 @@ class FunctionTest extends AnyFlatSpec with MockitoSugar{
   "Register" should "return failed future in case of bad email pattern" in {
     val registerTest = userManager.register(TestVariables.user(email = "badEmail"))
     ScalaFutures.whenReady(registerTest.failed){
-      e => e shouldBe a [BadEmailPatternException]
+      e => e shouldBe a[BadEmailPatternException]
     }
   }
 
@@ -62,7 +62,7 @@ class FunctionTest extends AnyFlatSpec with MockitoSugar{
 
     val addAddressTest = userManager.addAddress("random", TestVariables.address())
     ScalaFutures.whenReady(addAddressTest.failed){
-      e => e shouldBe a [AccountDoesNotExistException]
+      e => e shouldBe a[AccountDoesNotExistException]
     }
   }
 
@@ -72,7 +72,7 @@ class FunctionTest extends AnyFlatSpec with MockitoSugar{
     val addAddressTest = userManager.addAddress(
       TestVariables.user().userId, TestVariables.address())
     ScalaFutures.whenReady(addAddressTest.failed){
-      e => e shouldBe a [UnverifiedAccountException]
+      e => e shouldBe a[UnverifiedAccountException]
     }
   }
 
@@ -94,7 +94,7 @@ class FunctionTest extends AnyFlatSpec with MockitoSugar{
 
     val addAddressTest = userManager.getAddresses("random")
     ScalaFutures.whenReady(addAddressTest.failed){
-      e => e shouldBe a [AccountDoesNotExistException]
+      e => e shouldBe a[AccountDoesNotExistException]
     }
   }
 
@@ -103,7 +103,7 @@ class FunctionTest extends AnyFlatSpec with MockitoSugar{
 
     val getAddressTest = userManager.getAddresses(TestVariables.user().userId)
     ScalaFutures.whenReady(getAddressTest.failed){
-      e => e shouldBe a [UnverifiedAccountException]
+      e => e shouldBe a[UnverifiedAccountException]
     }
   }
 
@@ -118,7 +118,7 @@ class FunctionTest extends AnyFlatSpec with MockitoSugar{
   "login" should "throw bad-email-pattern exception if email has a bad-pattern" in {
     val loginTest: Future[String] = userManager.login("test", "test")
     ScalaFutures.whenReady(loginTest.failed){
-      e => e shouldBe a [BadEmailPatternException]
+      e => e shouldBe a[BadEmailPatternException]
     }
   }
 
@@ -128,7 +128,7 @@ class FunctionTest extends AnyFlatSpec with MockitoSugar{
     val loginTest: Future[String] = userManager.login(
       TestVariables.user().email, TestVariables.user().password)
     ScalaFutures.whenReady(loginTest.failed){
-      e => e shouldBe a [AccountDoesNotExistException]
+      e => e shouldBe a[AccountDoesNotExistException]
     }
   }
 
@@ -138,7 +138,7 @@ class FunctionTest extends AnyFlatSpec with MockitoSugar{
     val loginTest: Future[String] = userManager.login(
       TestVariables.user().email, TestVariables.user().password)
     ScalaFutures.whenReady(loginTest.failed){
-      e => e shouldBe a [PasswordMismatchException]
+      e => e shouldBe a[PasswordMismatchException]
     }
   }
 
@@ -148,7 +148,7 @@ class FunctionTest extends AnyFlatSpec with MockitoSugar{
     val loginTest: Future[String] = userManager.login(
       TestVariables.user().email, TestVariables.user().password)
     ScalaFutures.whenReady(loginTest.failed){
-      e => e shouldBe a [UnverifiedAccountException]
+      e => e shouldBe a[UnverifiedAccountException]
     }
   }
 
@@ -185,7 +185,7 @@ class FunctionTest extends AnyFlatSpec with MockitoSugar{
 
     val verifyTest = userManager.verifyUser(TestVariables.user().email)
     ScalaFutures.whenReady(verifyTest.failed){
-      e => e shouldBe a [AccountDoesNotExistException]
+      e => e shouldBe a[AccountDoesNotExistException]
     }
   }
 

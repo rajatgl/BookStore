@@ -34,11 +34,11 @@ object TestVariables {
 
     Otp(data,email)
 
-  def product(productId: String = "530",
+  def product(productId: Int = 1,
               author: String = "Xrnes",
               title: String = "TestProduct",
               image: String = "12323434",
-              quantity: String = "2",
+              quantity: Int = 2,
               price: Double = 3000,
               description: String = "This is a test product"): Product =
 
