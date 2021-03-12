@@ -5,6 +5,6 @@ case class Product(productId: String,
                    title: String,
                    image: String,
                    quantity: String,
-                   price: Double,
+                   price: String,
                    description: String
                   )
