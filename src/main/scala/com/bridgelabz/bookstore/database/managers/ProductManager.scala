@@ -42,15 +42,15 @@ class ProductManager(productDatabase : ICrud[Product], userDatabase : ICrud[User
 
   /**
    *
-   * @param fieldName : Field name by which product is to be searched
+   * @param fieldValue : Field name by which product is to be searched
    * @return : Future of Sequence of product if found or else product not found exception
    */
-  def getProduct(fieldName : String) : Future[Seq[Product]] = {
+  def getProduct(fieldValue : String) : Future[Seq[Product]] = {
     var doesExist = false
     var productSeq: Seq[Product] = Seq()
     productDatabase.read().map(products => {
       products.foreach(product => {
-        if(product.author.equals(fieldName) || product.title.equals(fieldName)){
+        if(product.author.equals(fieldValue) || product.title.equals(fieldValue)){
           doesExist = true
           productSeq = product.asInstanceOf[Seq[Product]]
         }
