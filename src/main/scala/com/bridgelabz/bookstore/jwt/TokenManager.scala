@@ -19,9 +19,9 @@ object TokenManager {
    * @return token
    */
   def generateToken(identifier: String,
-                    tokenExpiryPeriodInDays: Int = System.getenv("TOKEN_EXPIRY_IN_DAYS").toInt,
-                    header: JwtHeader = JwtHeader(System.getenv("ENCRYPTION_TYPE")),
-                    secretKey: String = System.getenv("SECRET_KEY")): String = {
+                    tokenExpiryPeriodInDays: Int = sys.env("TOKEN_EXPIRY_IN_DAYS").toInt,
+                    header: JwtHeader = JwtHeader(sys.env("ENCRYPTION_TYPE")),
+                    secretKey: String = sys.env("SECRET_KEY")): String = {
 
     val payLoad = JwtClaimsSet(
       Map(
