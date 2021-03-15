@@ -6,11 +6,11 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives.{complete, extractUri, handleExceptions}
 import akka.http.scaladsl.server.{Directives, ExceptionHandler, Route}
 import com.bridgelabz.bookstore.database.interfaces.ICrud
-import com.bridgelabz.bookstore.database.managers.UserManager
+import com.bridgelabz.bookstore.database.managers.{ProductManager, UserManager}
 import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseConfig}
 import com.bridgelabz.bookstore.marshallers.OutputMessageJsonSupport
-import com.bridgelabz.bookstore.models.{Otp, OutputMessage, User}
-import com.bridgelabz.bookstore.routes.UserRoutes
+import com.bridgelabz.bookstore.models.{Otp, OutputMessage, Product, User}
+import com.bridgelabz.bookstore.routes.{ProductRoutes, UserRoutes}
 import com.typesafe.scalalogging.Logger
 
 import scala.concurrent.ExecutionContext
@@ -54,29 +54,33 @@ object Main extends App with OutputMessageJsonSupport {
   //All databases
   val userDatabase: ICrud[User] = new DatabaseConfig[User]("users",CodecRepository.USER)
   val otpDatabase: ICrud[Otp] = new DatabaseConfig[Otp]("userOtp",CodecRepository.OTP)
+  val productDatabase: ICrud[Product] = new DatabaseConfig[Product]("products",CodecRepository.PRODUCT)
 
   //All managers
   val defaultUserManager: UserManager = new UserManager(userDatabase, otpDatabase)
+  val defaultProductManager: ProductManager = new ProductManager(productDatabase,userDatabase)
 
-  def route(userManager: UserManager): Route = {
+  def route(userManager: UserManager, productManager: ProductManager): Route = {
 
     val userRoutes = new UserRoutes(userManager)
+    val productRoutes = new ProductRoutes(productManager)
 
     handleExceptions(exceptionHandler){
       Directives.concat(
-
         //user routes
         userRoutes.loginRoute,
         userRoutes.registerRoute,
         userRoutes.getAddresses,
         userRoutes.addAddressRoute,
-        userRoutes.verifyRoute
+        userRoutes.verifyRoute,
+        // product routes
+        productRoutes.addProductRoute
       )
     }
   }
 
   //binder for the server
-  val binder = Http().newServerAt(host, port).bind(route(defaultUserManager))
+  val binder = Http().newServerAt(host, port).bind(route(defaultUserManager,defaultProductManager))
   binder.onComplete {
     case Success(serverBinding) => logger.info(s"Listening to ${serverBinding.localAddress}")
     case Failure(error) => logger.error(s"Error : ${error.getMessage}")

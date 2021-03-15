@@ -40,12 +40,12 @@ object EmailManager {
   def sendEmail(email: String,
                 subject: String,
                 body: String,
-                mailProtocol: String = System.getenv("MAIL_PROTOCOL"),
-                mailStatusCode: Int = System.getenv("MAIL_STATUS_CODE").toInt): Unit = {
+                mailProtocol: String = sys.env("MAIL_PROTOCOL"),
+                mailStatusCode: Int = sys.env("MAIL_STATUS_CODE").toInt): Unit = {
 
     val mailer = Mailer(mailProtocol, mailStatusCode)
       .auth(true)
-      .as(System.getenv("SENDER_EMAIL"), System.getenv("SENDER_PASSWORD"))
+      .as(sys.env("SENDER_EMAIL"), sys.env("SENDER_PASSWORD"))
       .startTls(true)()
     mailer(Envelope.from(new InternetAddress(System.getenv("SENDER_EMAIL")))
       .to(new InternetAddress(email))

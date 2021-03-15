@@ -10,6 +10,7 @@ object ExceptionMessages {
     "ACCOUNT_DOES_NOT_EXIST" -> "ACCOUNT_DOES_NOT_EXIST: You are not authorized to access this content.",
     "PASSWORD_MISMATCH" -> "PASSWORD_MISMATCH: Please enter a valid password for given email.",
     "BAD_EMAIL" -> "BAD_EMAIL: Please enter a valid email address.",
-    "UNVERIFIED_ACCOUNT" -> "UNVERIFIED_ACCOUNT: Please verify your email first to proceed."
+    "UNVERIFIED_ACCOUNT" -> "UNVERIFIED_ACCOUNT: Please verify your email first to proceed.",
+    "PRODUCT_DOES_NOT_EXIST" -> "PRODUCT NOT FOUND : Product you are searching for does not exists."
   )
 }
