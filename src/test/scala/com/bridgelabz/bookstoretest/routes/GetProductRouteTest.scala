@@ -11,7 +11,6 @@ import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
-
 import scala.concurrent.Future
 
 class GetProductRouteTest extends AnyWordSpec with ScalatestRouteTest with MockitoSugar with ScalaFutures{
@@ -23,7 +22,7 @@ class GetProductRouteTest extends AnyWordSpec with ScalatestRouteTest with Mocki
     when(mockProductManager.getProduct(TestVariables.product().title)).
       thenReturn(Future.successful(Seq()))
 
-    Get("/products?name=TestProduct") ~> routes ~>
+    Get("/products?name="+TestVariables.product().title) ~> routes ~>
       check {
         assert(status == StatusCodes.OK)
       }
@@ -35,17 +34,18 @@ class GetProductRouteTest extends AnyWordSpec with ScalatestRouteTest with Mocki
     when(mockProductManager.getProduct(TestVariables.product().author)).
       thenReturn(Future.successful(Seq()))
 
-    Get("/products?name=Xrnes") ~> routes ~>
+    Get("/products?name="+TestVariables.product().author) ~> routes ~>
       check {
         assert(status == StatusCodes.OK)
       }
   }
 
   "Route should return Not found for Get request to /products with Product which doesn't exists" in {
-    when(mockProductManager.getProduct("Random")).
+    val testRandomValue = "Random"
+    when(mockProductManager.getProduct(testRandomValue)).
       thenReturn(Future.failed(new ProductDoesNotExistException))
 
-    Get("/products?name=Random") ~> routes ~>
+    Get("/products?name="+testRandomValue) ~> routes ~>
       check {
         assert(status == StatusCodes.NOT_FOUND)
       }
