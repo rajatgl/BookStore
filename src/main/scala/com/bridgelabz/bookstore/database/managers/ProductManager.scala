@@ -17,16 +17,30 @@ class ProductManager(productDatabase : ICrud[Product], userDatabase : ICrud[User
 
   /**
    *
+   * @param userId to be checked for existence in database
+   * @return Future of true if user exists or false if it doesnt
+   */
+  def doesExist(userId: String): Future[Boolean] =
+    userDatabase.read().map(users => {
+      var isExist = false
+      for (user <- users) {
+        if (userId.equals(user.userId)) {
+          isExist = true
+        }
+      }
+      isExist
+    })
+  /**
+   *
    * @param product : product to be added in database
    * @return : Future of true if added successfully or else future of false
    */
   def addProduct(userId: String,product: Product) : Future[Boolean] = {
     var isExist = false
-    userDatabase.read().map(users => {
-      for (user <- users) {
-        if (userId.equals(user.userId)) {
-          isExist = true
-        }
+    val doesUserExists = doesExist(userId)
+    doesUserExists.map(exists => {
+      if(exists){
+        isExist = true
       }
     })
     if(isExist){
