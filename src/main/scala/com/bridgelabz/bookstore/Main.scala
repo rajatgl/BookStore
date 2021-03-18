@@ -12,7 +12,6 @@ import com.bridgelabz.bookstore.marshallers.OutputMessageJsonSupport
 import com.bridgelabz.bookstore.models.{Otp, OutputMessage, Product, User}
 import com.bridgelabz.bookstore.routes.{ProductRoutes, UserRoutes}
 import com.typesafe.scalalogging.Logger
-
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
@@ -74,7 +73,8 @@ object Main extends App with OutputMessageJsonSupport {
         userRoutes.addAddressRoute,
         userRoutes.verifyRoute,
         // product routes
-        productRoutes.addProductRoute
+        productRoutes.addProductRoute,
+        productRoutes.getProductRoute
       )
     }
   }
