@@ -21,7 +21,7 @@ class ProductRoutes(productManager: ProductManager) extends OutputMessageJsonSup
    * To add products to database
    * @return : If user authorized and product added returns Ok or else returns UnAuthorized
    */
-  def addProductRoute: Route = post {
+  def addProductRoute : Route = post {
     path("addProduct") {
       entity(Directives.as[Product]) { request =>
         headerValueByName("Authorization") { token =>
@@ -56,11 +56,10 @@ class ProductRoutes(productManager: ProductManager) extends OutputMessageJsonSup
    */
   def getProductRoute : Route = get {
     path("products") {
-      parameters('name.as[String]) {
-        name =>
+      parameters('name.?) { name =>
             onComplete(productManager.getProduct(name)){
               case Success(product) =>
-                complete(OutputMessage(StatusCodes.OK.intValue(),product.toString()))
+                complete(StatusCodes.OK.intValue() -> product)
               case Failure(exception) =>
                 exception match {
                   case productNotFound : ProductDoesNotExistException =>

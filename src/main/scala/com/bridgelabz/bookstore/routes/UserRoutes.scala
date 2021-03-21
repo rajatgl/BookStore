@@ -20,7 +20,6 @@ class UserRoutes(userManager: UserManager)
     with LoginJsonSupport
     with AddAddressJsonSupport {
 
-
   val logger: Logger = Logger("User-Routes")
 
   /**

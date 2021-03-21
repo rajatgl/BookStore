@@ -28,16 +28,14 @@ class ProductManager(productDatabase : ICrud[Product], userDatabase : ICrud[User
           isExist = true
         }
       }
+      if(isExist){
+        productDatabase.create(product)
+        true
+      }
+      else {
+        throw new AccountDoesNotExistException
+      }
     })
-    if(isExist){
-      productDatabase.create(product).transform({
-        case Success(_) => Success(true)
-        case Failure(_) => Success(false)
-      })
-    }
-    else {
-      throw new AccountDoesNotExistException
-    }
   }
 
   /**
@@ -45,23 +43,29 @@ class ProductManager(productDatabase : ICrud[Product], userDatabase : ICrud[User
    * @param fieldValue : Field name by which product is to be searched
    * @return : Future of Sequence of product if found or else product not found exception
    */
-  def getProduct(fieldValue : String) : Future[Seq[Product]] = {
-    var doesExist = false
-    var productSeq: Seq[Product] = Seq()
-    productDatabase.read().map(products => {
-      products.foreach(product => {
-        if(product.author.equals(fieldValue) || product.title.equals(fieldValue)){
-          doesExist = true
-          productSeq = product.asInstanceOf[Seq[Product]]
+  def getProduct(fieldValue : Option[String]) : Future[Seq[Product]] = {
+
+    if(fieldValue.isDefined) {
+      var doesExist = false
+      var productSeq: Seq[Product] = Seq()
+      productDatabase.read().map(products => {
+        products.foreach(product => {
+          if (product.author.equals(fieldValue.get) || product.title.equals(fieldValue.get)) {
+            doesExist = true
+            productSeq = product.asInstanceOf[Seq[Product]]
+          }
+        })
+        if (doesExist) {
+          productSeq
+        }
+        else {
+          throw new ProductDoesNotExistException
         }
       })
-      if(doesExist){
-        productSeq
-      }
-      else {
-        throw new ProductDoesNotExistException
-      }
-    })
+    }
+    else{
+      productDatabase.read()
+    }
   }
 
 }

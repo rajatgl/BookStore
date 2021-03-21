@@ -63,7 +63,7 @@ class ProductTable(tableName: String) extends ICrud[Product] {
    */
   override def read(): Future[Seq[Product]] = {
     val query = s"SELECT * FROM $tableName"
-    Future(MySqlUtils.executeQuery(query))
+    Future(MySqlUtils.executeProductQuery(query))
   }
 
   /**
