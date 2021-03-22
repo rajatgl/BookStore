@@ -44,7 +44,8 @@ object Main extends App with OutputMessageJsonSupport {
       }
     case ex: Exception =>
       extractUri { _ =>
-        logger.error(ex.getStackTrace.mkString("Array(", ", ", ")"))
+        //logger.error(ex.getStackTrace.mkString("Array(", ", ", ")"))
+        logger.error("exception : "+ex.getMessage)
         complete(StatusCodes.INTERNAL_SERVER_ERROR.intValue() ->
           OutputMessage(StatusCodes.INTERNAL_SERVER_ERROR.intValue(), "Some error occurred. Please try again later."))
       }

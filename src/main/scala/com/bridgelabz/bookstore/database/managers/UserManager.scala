@@ -11,6 +11,7 @@ import com.typesafe.scalalogging.Logger
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+// TODO: Change userDatabase to colletion
 class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
 
   val logger: Logger = Logger("User-Manager")
@@ -62,7 +63,7 @@ class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
         }
         else {
           userDatabase.create(user)
-
+      // TODO : Separate service for OTP
           val newOtp = Otp(Utilities.randomNumber(), user.email)
           otpDatabase.create(newOtp)
           EmailManager.sendOtp(newOtp)

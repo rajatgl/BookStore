@@ -28,7 +28,7 @@ class ProductManagerTest extends AnyFlatSpec with MockitoSugar {
 
   "Get product" should "return true if product fetched successfully" in {
     when(iCrudProductMock.read()).thenReturn(Future[Seq[Product]](Seq[Product](TestVariables.product())))
-    assert(Await.result(productManager.getProduct("Xrnes"),1500.seconds) == Product("530","Xrnes","TestProduct","12323434","2","3000.0","This is a test product"))
+    assert(Await.result(productManager.getProduct(TestVariables.product().author),1500.seconds) == TestVariables.product())
   }
 
   "Get Product which doesn't exist" should "return Product Not found exception" in {

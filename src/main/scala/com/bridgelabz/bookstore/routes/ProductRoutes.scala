@@ -28,14 +28,11 @@ class ProductRoutes(productManager: ProductManager) extends OutputMessageJsonSup
           if (TokenManager.isValidToken(token.split(" ")(1))) {
             val userId = TokenManager.getIdentifier(token.split(" ")(1))
             onComplete(productManager.addProduct(userId, request)) {
-              case Success(value) =>
-                if (value) {
+              case Success(_) =>
                   complete(StatusCodes.OK.intValue() -> OutputMessage(StatusCodes.OK.intValue(),
                     "Product added successfully."))
-                } else {
-                  complete(StatusCodes.INTERNAL_SERVER_ERROR.intValue() -> OutputMessage(StatusCodes.INTERNAL_SERVER_ERROR.intValue(),
-                    "Product could not be added."))
-                }
+              case Failure(exception) => complete(StatusCodes.INTERNAL_SERVER_ERROR.intValue() -> OutputMessage(StatusCodes.INTERNAL_SERVER_ERROR.intValue(),
+                "Product could not be added." + exception))
             }
           }
           else {
@@ -65,7 +62,8 @@ class ProductRoutes(productManager: ProductManager) extends OutputMessageJsonSup
                 exception match {
                   case productNotFound : ProductDoesNotExistException =>
                     complete(productNotFound.status() -> OutputMessage(productNotFound.status(),productNotFound.getMessage))
-                  case _ =>
+                  case ex =>
+                    println(ex)
                     complete(StatusCodes.INTERNAL_SERVER_ERROR.intValue() -> OutputMessage(StatusCodes.INTERNAL_SERVER_ERROR.intValue(),
                       "An internal error occurred. Contact the admin."))
                 }

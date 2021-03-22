@@ -3,11 +3,12 @@ package com.bridgelabz.bookstore.database.managers
 import com.bridgelabz.bookstore.database.interfaces.ICrud
 import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, ProductDoesNotExistException}
 import com.typesafe.scalalogging.LazyLogging
+
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 import scala.util.{Failure, Success}
 import com.bridgelabz.bookstore.models.{Product, User}
-
+import concurrent.duration._
 /**
  * Created on 3/11/2021.
  * Class: ProductManager.scala
@@ -20,7 +21,7 @@ class ProductManager(productDatabase : ICrud[Product], userDatabase : ICrud[User
    * @param userId to be checked for existence in database
    * @return Future of true if user exists or false if it doesnt
    */
-  def doesExist(userId: String): Future[Boolean] =
+  def doesExist(userId: String): Future[Boolean] = {
     userDatabase.read().map(users => {
       var isExist = false
       for (user <- users) {
@@ -30,6 +31,7 @@ class ProductManager(productDatabase : ICrud[Product], userDatabase : ICrud[User
       }
       isExist
     })
+  }
   /**
    *
    * @param product : product to be added in database
@@ -40,18 +42,16 @@ class ProductManager(productDatabase : ICrud[Product], userDatabase : ICrud[User
     val doesUserExists = doesExist(userId)
     doesUserExists.map(exists => {
       if(exists){
-        isExist = true
+        productDatabase.create(product).map( product => {
+          logger.info(product + "Added")
+          isExist = true
+        })
+        isExist
+      }
+      else {
+        throw new AccountDoesNotExistException
       }
     })
-    if(isExist){
-      productDatabase.create(product).transform({
-        case Success(_) => Success(true)
-        case Failure(_) => Success(false)
-      })
-    }
-    else {
-      throw new AccountDoesNotExistException
-    }
   }
 
   /**
@@ -64,9 +64,11 @@ class ProductManager(productDatabase : ICrud[Product], userDatabase : ICrud[User
     var productSeq: Seq[Product] = Seq()
     productDatabase.read().map(products => {
       products.foreach(product => {
-        if(product.author.equals(fieldValue) || product.title.equals(fieldValue)){
+        val authorExists = product.author.equals(fieldValue)
+        val titleExists = product.title.equals(fieldValue)
+        if(authorExists || titleExists){
           doesExist = true
-          productSeq = product.asInstanceOf[Seq[Product]]
+          productSeq = productSeq :+ product
         }
       })
       if(doesExist){
