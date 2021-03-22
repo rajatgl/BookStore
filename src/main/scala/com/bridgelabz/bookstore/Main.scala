@@ -56,6 +56,7 @@ object Main extends App with OutputMessageJsonSupport {
   val userDatabase: ICrud[User] = new DatabaseConfig[User]("users",CodecRepository.USER)
   val otpDatabase: ICrud[Otp] = new DatabaseConfig[Otp]("userOtp",CodecRepository.OTP)
   //val productDatabase: ICrud[Product] = new DatabaseConfig[Product]("products",CodecRepository.PRODUCT)
+  // mysql product table
   val productDatabase: ICrud[Product] = new ProductTable("products")
 
 
