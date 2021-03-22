@@ -1,12 +1,12 @@
 package com.bridgelabz.bookstore.database.managers
 
 import com.bridgelabz.bookstore.database.interfaces.ICrud
-import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, ProductDoesNotExistException}
+import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, ProductDoesNotExistException, UnverifiedAccountException}
+import com.bridgelabz.bookstore.models.{Product, User}
 import com.typesafe.scalalogging.LazyLogging
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
-import com.bridgelabz.bookstore.models.{Product, User}
 
 /**
  * Created on 3/11/2021.
@@ -25,7 +25,12 @@ class ProductManager(productDatabase : ICrud[Product], userDatabase : ICrud[User
     userDatabase.read().map(users => {
       for (user <- users) {
         if (userId.equals(user.userId)) {
-          isExist = true
+          if(user.verificationComplete) {
+            isExist = true
+          }
+          else{
+            throw new UnverifiedAccountException
+          }
         }
       }
       if(isExist){
@@ -50,9 +55,9 @@ class ProductManager(productDatabase : ICrud[Product], userDatabase : ICrud[User
       var productSeq: Seq[Product] = Seq()
       productDatabase.read().map(products => {
         products.foreach(product => {
-          if (product.author.equals(fieldValue.get) || product.title.equals(fieldValue.get)) {
+          if (product.author.toLowerCase.contains(fieldValue.get.toLowerCase) || product.title.toLowerCase.contains(fieldValue.get.toLowerCase)) {
             doesExist = true
-            productSeq = product.asInstanceOf[Seq[Product]]
+            productSeq = productSeq :+ product
           }
         })
         if (doesExist) {

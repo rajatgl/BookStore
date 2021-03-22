@@ -6,10 +6,10 @@ import akka.http.scaladsl.model.{HttpEntity, HttpMethods, HttpRequest, MediaType
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.util.ByteString
 import com.bridgelabz.bookstore.database.interfaces.ICrud
-import com.bridgelabz.bookstore.database.managers.UserManager
+import com.bridgelabz.bookstore.database.managers.{ProductManager, UserManager}
 import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseConfig}
-import com.bridgelabz.bookstore.models.{Otp, User}
-import com.bridgelabz.bookstore.routes.UserRoutes
+import com.bridgelabz.bookstore.models._
+import com.bridgelabz.bookstore.routes.{ProductRoutes, UserRoutes}
 import com.bridgelabz.bookstoretest.TestVariables
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.wordspec.AnyWordSpec
@@ -36,8 +36,16 @@ class RouteTest extends AnyWordSpec
     CodecRepository.OTP
   )
 
+  val productDatabase: ICrud[Product] = new DatabaseConfig[Product](
+    "productTest",
+    CodecRepository.PRODUCT
+  )
+
   val userManager: UserManager = new UserManager(userDatabase, otpDatabase)
+  val productManager: ProductManager = new ProductManager(productDatabase,userDatabase)
+
   lazy val routes: UserRoutes = new UserRoutes(userManager)
+  lazy val productRoutes: ProductRoutes = new ProductRoutes(productManager)
 
   "The service" should {
 
@@ -154,5 +162,43 @@ class RouteTest extends AnyWordSpec
         assert(status === StatusCodes.OK)
       }
     }
+
+    "Route should add product to a book-store for Post request to /product" in {
+
+      val jsonRequest = ByteString(
+        s"""
+           |{
+           |    "productId": ${TestVariables.product().productId},
+           |    "author": "${TestVariables.product().author}",
+           |    "title": "${TestVariables.product().title}",
+           |    "image": "${TestVariables.product().image}",
+           |    "quantity": ${TestVariables.product().quantity},
+           |    "price": ${TestVariables.product().price},
+           |    "description": "${TestVariables.product().description}"
+           |}
+           |""".stripMargin
+      )
+
+      val postRequest = HttpRequest(
+        HttpMethods.POST,
+        uri = "/product",
+        entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
+      )
+
+      postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> productRoutes.addProductRoute ~> check {
+        assert(status === StatusCodes.OK)
+      }
+    }
+
+    "Route should fetch all products from the book-store for Get request to /products" in {
+
+      Get("/products") ~>
+        productRoutes.getProductRoute ~>
+        check {
+          status.equals(StatusCodes.OK)
+        }
+    }
+
+
   }
 }
