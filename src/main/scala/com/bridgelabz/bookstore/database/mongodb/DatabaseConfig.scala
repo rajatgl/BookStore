@@ -1,6 +1,6 @@
 package com.bridgelabz.bookstore.database.mongodb
 
-import com.bridgelabz.bookstore.database.interfaces.ICrud
+import com.bridgelabz.bookstore.database.interfaces.{ICrud, ICrudRepository}
 import com.bridgelabz.bookstore.database.mongodb.CodecRepository.CodecNames
 import com.typesafe.scalalogging.LazyLogging
 import org.mongodb.scala.MongoCollection
@@ -17,7 +17,7 @@ class DatabaseConfig[T: scala.reflect.ClassTag](collectionName: String,
                                                     codecName: CodecNames,
                                                     databaseName: String = sys.env("DATABASE_NAME"),
                                                     mongoDbConfig: MongoConfig = new MongoConfig())
-  extends ICrud[T] with LazyLogging{
+  extends ICrudRepository[T] with LazyLogging{
   logger.info("inside database config")
   def collection(): MongoCollection[T] = {
 
@@ -54,4 +54,14 @@ class DatabaseConfig[T: scala.reflect.ClassTag](collectionName: String,
    * @return sequence of objects in the database
    */
   override def read(): Future[Seq[T]] = collection().find().toFuture()
+
+  /**
+   *
+   * @param identifier Value to search for in database
+   * @param fieldName fieldName to search for in database
+   * @return any status identifier for find by value operation
+   */
+  override def findByValue(identifier: Any, fieldName: String): Future[Any] = {
+    collection().find(equal(fieldName,identifier)).toFuture()
+  }
 }

@@ -1,6 +1,6 @@
 package com.bridgelabz.bookstore.database.mysql
 
-import com.bridgelabz.bookstore.database.interfaces.ICrud
+import com.bridgelabz.bookstore.database.interfaces.{ICrud, ICrudRepository}
 import com.bridgelabz.bookstore.models.Product
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -11,7 +11,7 @@ import scala.concurrent.Future
  * Class: ProductTable.scala
  * Author: Rajat G.L.
  */
-class ProductTable(tableName: String) extends ICrud[Product] {
+class ProductTable(tableName: String) extends ICrudRepository[Product]{
 
   private def createTable() = {
     val createQuery: String =
@@ -116,4 +116,6 @@ class ProductTable(tableName: String) extends ICrud[Product] {
       Future.failed(new Exception("Delete-Product: FAILED"))
     }
   }
+
+  override def findByValue(identifier: Any, fieldName: String): Future[Any] = ???
 }

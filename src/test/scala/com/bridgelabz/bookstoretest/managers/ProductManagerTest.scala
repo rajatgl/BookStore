@@ -1,6 +1,6 @@
 package com.bridgelabz.bookstoretest.managers
 
-import com.bridgelabz.bookstore.database.interfaces.ICrud
+import com.bridgelabz.bookstore.database.interfaces.{ICrud, ICrudRepository}
 import com.bridgelabz.bookstore.database.managers.ProductManager
 import com.bridgelabz.bookstore.exceptions.ProductDoesNotExistException
 import org.scalatest.flatspec.AnyFlatSpec
@@ -17,9 +17,10 @@ import org.scalatest.concurrent.ScalaFutures
 import scala.concurrent.{Await, Future}
 
 class ProductManagerTest extends AnyFlatSpec with MockitoSugar {
-  val iCrudProductMock: ICrud[Product] = mock[ICrud[Product]]
+  val iCrudProductMock: ICrudRepository[Product] = mock[ICrudRepository[Product]]
   val iCrudUserMock: ICrud[User] = mock[ICrud[User]]
-  val productManager: ProductManager = new ProductManager(iCrudProductMock,iCrudUserMock)
+  //val productManager: ProductManager = new ProductManager(iCrudProductMock,iCrudUserMock)
+  val productManager: ProductManager = new ProductManager(iCrudProductMock)
 
   "Add Product" should "return true if product added successfully" in {
     when(iCrudProductMock.create(TestVariables.product())).thenReturn(Future(true))

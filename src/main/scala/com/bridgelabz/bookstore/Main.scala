@@ -5,7 +5,7 @@ import akka.http.javadsl.model.StatusCodes
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives.{complete, extractUri, handleExceptions}
 import akka.http.scaladsl.server.{Directives, ExceptionHandler, Route}
-import com.bridgelabz.bookstore.database.interfaces.ICrud
+import com.bridgelabz.bookstore.database.interfaces.{ICrud, ICrudRepository}
 import com.bridgelabz.bookstore.database.managers.{ProductManager, UserManager}
 import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseConfig}
 import com.bridgelabz.bookstore.database.mysql.ProductTable
@@ -13,6 +13,7 @@ import com.bridgelabz.bookstore.marshallers.OutputMessageJsonSupport
 import com.bridgelabz.bookstore.models.{Otp, OutputMessage, Product, User}
 import com.bridgelabz.bookstore.routes.{ProductRoutes, UserRoutes}
 import com.typesafe.scalalogging.Logger
+
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
@@ -55,14 +56,16 @@ object Main extends App with OutputMessageJsonSupport {
   //All databases
   val userDatabase: ICrud[User] = new DatabaseConfig[User]("users",CodecRepository.USER)
   val otpDatabase: ICrud[Otp] = new DatabaseConfig[Otp]("userOtp",CodecRepository.OTP)
-  //val productDatabase: ICrud[Product] = new DatabaseConfig[Product]("products",CodecRepository.PRODUCT)
-  // mysql product table
-  val productDatabase: ICrud[Product] = new ProductTable("products")
+  val productDatabase: ICrudRepository[Product] = new DatabaseConfig[Product]("products",CodecRepository.PRODUCT)
 
+  // mysql product table
+  //val productDatabase: ICrud[Product] = new ProductTable("products")
+  //val productDatabase: ICrudRepository[Product] = new ProductTable("products")
 
   //All managers
   val defaultUserManager: UserManager = new UserManager(userDatabase, otpDatabase)
-  val defaultProductManager: ProductManager = new ProductManager(productDatabase,userDatabase)
+  //val defaultProductManager: ProductManager = new ProductManager(productDatabase,userDatabase)
+  val defaultProductManager: ProductManager = new ProductManager(productDatabase)
 
   def route(userManager: UserManager, productManager: ProductManager): Route = {
 

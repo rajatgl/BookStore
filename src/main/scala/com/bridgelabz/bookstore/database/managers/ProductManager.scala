@@ -1,8 +1,9 @@
 package com.bridgelabz.bookstore.database.managers
 
-import com.bridgelabz.bookstore.database.interfaces.ICrud
+import com.bridgelabz.bookstore.database.interfaces.{ICrud, ICrudRepository}
 import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, ProductDoesNotExistException}
 import com.typesafe.scalalogging.LazyLogging
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import com.bridgelabz.bookstore.models.{Product, User}
@@ -11,29 +12,19 @@ import com.bridgelabz.bookstore.models.{Product, User}
  * Class: ProductManager.scala
  * Author: Ruchir Dixit.
  */
-class ProductManager(productDatabase : ICrud[Product], userDatabase : ICrud[User]) extends LazyLogging{
-
+//class ProductManager(productDatabase : ICrud[Product], userDatabase : ICrud[User]) extends LazyLogging{
+class ProductManager(productDatabase : ICrudRepository[Product]) extends LazyLogging{
   /**
    *
    * @param product : product to be added in database
    * @return : Future of true if added successfully or else future of false
    */
   def addProduct(userId: String,product: Product) : Future[Boolean] = {
-    var isExist = false
-    userDatabase.read().map(users => {
-      for (user <- users) {
-        if (userId.equals(user.userId)) {
-          isExist = true
-        }
+    productDatabase.findByValue("userId",userId).map(_ => {
+          productDatabase.create(product)
+          true
       }
-      if(isExist){
-        productDatabase.create(product)
-        true
-      }
-      else {
-        throw new AccountDoesNotExistException
-      }
-    })
+    )
   }
 
   /**
