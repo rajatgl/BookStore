@@ -2,7 +2,8 @@ package com.bridgelabz.bookstore.database.mysql
 
 import java.sql.{ResultSet, Statement}
 
-import com.bridgelabz.bookstore.models.Product
+import com.bridgelabz.bookstore.database.mysql.models.{MySqlAddress, MySqlUser}
+import com.bridgelabz.bookstore.models.{Address, Product}
 
 /**
  * Created on 3/11/2021.
@@ -47,7 +48,7 @@ object MySqlUtils {
     successful
   }
 
-  def executeQuery(query: String): Seq[Product]= {
+  def executeProductQuery(query: String): Seq[Product]= {
     var products = Seq[Product]()
     val connection = MySqlConfig.getConnection(MySqlConnection())
     try {
@@ -77,4 +78,94 @@ object MySqlUtils {
     products
   }
 
+  def executeMySqlUserQuery(query: String): Seq[MySqlUser] = {
+    var users = Seq[MySqlUser]()
+    val connection = MySqlConfig.getConnection(MySqlConnection())
+    try {
+      val stmt: Statement = connection.createStatement
+      try {
+        val rs: ResultSet  = stmt.executeQuery(query)
+        try {
+          while (rs.next()) {
+            val user = MySqlUser(rs.getString("userId"),
+              rs.getString("userName"),
+              rs.getString("mobileNumber"),
+              rs.getString("email"),
+              rs.getString("password"),
+              rs.getBoolean("verificationComplete"))
+            users = users :+ user
+          }
+        } finally {
+          rs.close()
+        }
+      } finally {
+        stmt.close()
+      }
+    } finally {
+      connection.close()
+    }
+    users
+  }
+
+  def executeMySqlAddressQuery(query: String): Seq[MySqlAddress] = {
+    var addresses = Seq[MySqlAddress]()
+    val connection = MySqlConfig.getConnection(MySqlConnection())
+    try {
+      val stmt: Statement = connection.createStatement
+      try {
+        val rs: ResultSet  = stmt.executeQuery(query)
+        try {
+          while (rs.next()) {
+            val address = MySqlAddress(
+              rs.getString("userId"),
+              rs.getInt("apartmentNumber").toString,
+              rs.getString("apartmentName"),
+              rs.getString("streetAddress"),
+              rs.getString("landMark"),
+              rs.getString("state"),
+              rs.getString("pincode"))
+            addresses = addresses :+ address
+          }
+        } finally {
+          rs.close()
+        }
+      } finally {
+        stmt.close()
+      }
+    } finally {
+      connection.close()
+    }
+    addresses
+  }
+
+  def fetchAddresses(tableNameForAddress: String, userId: String): Seq[Address] = {
+
+    val query = s"SELECT * FROM $tableNameForAddress WHERE userId = $userId"
+    var addresses = Seq[Address]()
+    val connection = MySqlConfig.getConnection(MySqlConnection())
+    try {
+      val stmt: Statement = connection.createStatement
+      try {
+        val rs: ResultSet  = stmt.executeQuery(query)
+        try {
+          while (rs.next()) {
+            val address = Address(rs.getInt("apartmentNumber").toString,
+              rs.getString("apartmentName"),
+              rs.getString("streetAddress"),
+              rs.getString("landMark"),
+              rs.getString("state"),
+              rs.getString("pincode"))
+            addresses = addresses :+ address
+          }
+        } finally {
+          rs.close()
+        }
+      } finally {
+        stmt.close()
+      }
+    } finally {
+      connection.close()
+    }
+    addresses
+  }
 }

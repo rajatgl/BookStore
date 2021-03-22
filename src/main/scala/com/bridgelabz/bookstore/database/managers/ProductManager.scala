@@ -3,12 +3,9 @@ package com.bridgelabz.bookstore.database.managers
 import com.bridgelabz.bookstore.database.interfaces.ICrud
 import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, ProductDoesNotExistException}
 import com.typesafe.scalalogging.LazyLogging
-
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Await, Future}
-import scala.util.{Failure, Success}
+import scala.concurrent.Future
 import com.bridgelabz.bookstore.models.{Product, User}
-import concurrent.duration._
 /**
  * Created on 3/11/2021.
  * Class: ProductManager.scala
@@ -18,35 +15,20 @@ class ProductManager(productDatabase : ICrud[Product], userDatabase : ICrud[User
 
   /**
    *
-   * @param userId to be checked for existence in database
-   * @return Future of true if user exists or false if it doesnt
-   */
-  def doesExist(userId: String): Future[Boolean] = {
-    userDatabase.read().map(users => {
-      var isExist = false
-      for (user <- users) {
-        if (userId.equals(user.userId)) {
-          isExist = true
-        }
-      }
-      isExist
-    })
-  }
-  /**
-   *
    * @param product : product to be added in database
    * @return : Future of true if added successfully or else future of false
    */
   def addProduct(userId: String,product: Product) : Future[Boolean] = {
     var isExist = false
-    val doesUserExists = doesExist(userId)
-    doesUserExists.map(exists => {
-      if(exists){
-        productDatabase.create(product).map( product => {
-          logger.info(product + "Added")
+    userDatabase.read().map(users => {
+      for (user <- users) {
+        if (userId.equals(user.userId)) {
           isExist = true
-        })
-        isExist
+        }
+      }
+      if(isExist){
+        productDatabase.create(product)
+        true
       }
       else {
         throw new AccountDoesNotExistException
@@ -59,25 +41,29 @@ class ProductManager(productDatabase : ICrud[Product], userDatabase : ICrud[User
    * @param fieldValue : Field name by which product is to be searched
    * @return : Future of Sequence of product if found or else product not found exception
    */
-  def getProduct(fieldValue : String) : Future[Seq[Product]] = {
-    var doesExist = false
-    var productSeq: Seq[Product] = Seq()
-    productDatabase.read().map(products => {
-      products.foreach(product => {
-        val authorExists = product.author.equals(fieldValue)
-        val titleExists = product.title.equals(fieldValue)
-        if(authorExists || titleExists){
-          doesExist = true
-          productSeq = productSeq :+ product
+  def getProduct(fieldValue : Option[String]) : Future[Seq[Product]] = {
+
+    if(fieldValue.isDefined) {
+      var doesExist = false
+      var productSeq: Seq[Product] = Seq()
+      productDatabase.read().map(products => {
+        products.foreach(product => {
+          if (product.author.equals(fieldValue.get) || product.title.equals(fieldValue.get)) {
+            doesExist = true
+            productSeq = product.asInstanceOf[Seq[Product]]
+          }
+        })
+        if (doesExist) {
+          productSeq
+        }
+        else {
+          throw new ProductDoesNotExistException
         }
       })
-      if(doesExist){
-        productSeq
-      }
-      else {
-        throw new ProductDoesNotExistException
-      }
-    })
+    }
+    else{
+      productDatabase.read()
+    }
   }
 
 }

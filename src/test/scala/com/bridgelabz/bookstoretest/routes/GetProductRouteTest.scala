@@ -19,7 +19,7 @@ class GetProductRouteTest extends AnyWordSpec with ScalatestRouteTest with Mocki
 
   "Route should return OK for Get request to /products with title" in {
 
-    when(mockProductManager.getProduct(TestVariables.product().title)).
+    when(mockProductManager.getProduct(Some(TestVariables.product().title))).
       thenReturn(Future.successful(Seq()))
 
     Get("/products?name="+TestVariables.product().title) ~> routes ~>
@@ -31,7 +31,7 @@ class GetProductRouteTest extends AnyWordSpec with ScalatestRouteTest with Mocki
 
   "Route should return OK for Get request to /products with author" in {
 
-    when(mockProductManager.getProduct(TestVariables.product().author)).
+    when(mockProductManager.getProduct(Some(TestVariables.product().author))).
       thenReturn(Future.successful(Seq()))
 
     Get("/products?name="+TestVariables.product().author) ~> routes ~>
@@ -42,7 +42,7 @@ class GetProductRouteTest extends AnyWordSpec with ScalatestRouteTest with Mocki
 
   "Route should return Not found for Get request to /products with Product which doesn't exists" in {
     val testRandomValue = "Random"
-    when(mockProductManager.getProduct(testRandomValue)).
+    when(mockProductManager.getProduct(Some(testRandomValue))).
       thenReturn(Future.failed(new ProductDoesNotExistException))
 
     Get("/products?name="+testRandomValue) ~> routes ~>

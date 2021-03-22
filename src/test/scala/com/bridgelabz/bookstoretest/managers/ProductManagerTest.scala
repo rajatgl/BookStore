@@ -28,11 +28,11 @@ class ProductManagerTest extends AnyFlatSpec with MockitoSugar {
 
   "Get product" should "return true if product fetched successfully" in {
     when(iCrudProductMock.read()).thenReturn(Future[Seq[Product]](Seq[Product](TestVariables.product())))
-    assert(Await.result(productManager.getProduct(TestVariables.product().author),1500.seconds) == TestVariables.product())
+    assert(Await.result(productManager.getProduct(Some(TestVariables.product().author)),1500.seconds) == TestVariables.product())
   }
 
   "Get Product which doesn't exist" should "return Product Not found exception" in {
-    val productTest = productManager.getProduct("Any")
+    val productTest = productManager.getProduct(Some("Any"))
     ScalaFutures.whenReady(productTest.failed){
       e => e shouldBe a [ProductDoesNotExistException]
     }

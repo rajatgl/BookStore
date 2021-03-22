@@ -20,7 +20,6 @@ class UserRoutes(userManager: UserManager)
     with LoginJsonSupport
     with AddAddressJsonSupport {
 
-
   val logger: Logger = Logger("User-Routes")
 
   /**
@@ -31,7 +30,6 @@ class UserRoutes(userManager: UserManager)
     //allow users to register
     path("register") {
       entity(Directives.as[RegisterModel]) { request =>
-        // TODO: email regex, validate phone number (unique)
         val registerFuture: Future[Boolean] = userManager.register(User(userManager.generateUserId(request.email),
           request.userName,
           request.mobileNumber,
