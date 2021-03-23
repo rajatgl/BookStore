@@ -18,9 +18,9 @@ import scala.concurrent.{Await, Future}
 
 class ProductManagerTest extends AnyFlatSpec with MockitoSugar {
   val iCrudProductMock: ICrudRepository[Product] = mock[ICrudRepository[Product]]
-  val iCrudUserMock: ICrud[User] = mock[ICrud[User]]
+  val iCrudUserMock: ICrudRepository[User] = mock[ICrudRepository[User]]
   //val productManager: ProductManager = new ProductManager(iCrudProductMock,iCrudUserMock)
-  val productManager: ProductManager = new ProductManager(iCrudProductMock)
+  val productManager: ProductManager = new ProductManager(iCrudProductMock,iCrudUserMock)
 
   "Add Product" should "return true if product added successfully" in {
     when(iCrudProductMock.create(TestVariables.product())).thenReturn(Future(true))

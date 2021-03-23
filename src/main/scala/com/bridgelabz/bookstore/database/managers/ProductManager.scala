@@ -12,19 +12,22 @@ import com.bridgelabz.bookstore.models.{Product, User}
  * Class: ProductManager.scala
  * Author: Ruchir Dixit.
  */
-//class ProductManager(productDatabase : ICrud[Product], userDatabase : ICrud[User]) extends LazyLogging{
-class ProductManager(productDatabase : ICrudRepository[Product]) extends LazyLogging{
+class ProductManager(productDatabase : ICrudRepository[Product],userDatabase : ICrudRepository[User]) extends LazyLogging{
   /**
    *
    * @param product : product to be added in database
    * @return : Future of true if added successfully or else future of false
    */
   def addProduct(userId: String,product: Product) : Future[Boolean] = {
-    productDatabase.findByValue("userId",userId).map(_ => {
-          productDatabase.create(product)
-          true
+    userDatabase.findById(userId,"userId").map(user => {
+      if (user != "") {
+        productDatabase.create(product)
+        true
       }
-    )
+      else {
+        false
+      }
+    })
   }
 
   /**
@@ -33,7 +36,6 @@ class ProductManager(productDatabase : ICrudRepository[Product]) extends LazyLog
    * @return : Future of Sequence of product if found or else product not found exception
    */
   def getProduct(fieldValue : Option[String]) : Future[Seq[Product]] = {
-
     if(fieldValue.isDefined) {
       var doesExist = false
       var productSeq: Seq[Product] = Seq()

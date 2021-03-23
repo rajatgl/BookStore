@@ -46,7 +46,6 @@ object Main extends App with OutputMessageJsonSupport {
       }
     case ex: Exception =>
       extractUri { _ =>
-        //logger.error(ex.getStackTrace.mkString("Array(", ", ", ")"))
         logger.error("exception : "+ex.getMessage)
         complete(StatusCodes.INTERNAL_SERVER_ERROR.intValue() ->
           OutputMessage(StatusCodes.INTERNAL_SERVER_ERROR.intValue(), "Some error occurred. Please try again later."))
@@ -54,18 +53,14 @@ object Main extends App with OutputMessageJsonSupport {
   }
 
   //All databases
-  val userDatabase: ICrud[User] = new DatabaseConfig[User]("users",CodecRepository.USER)
+  val userDatabase: ICrudRepository[User] = new DatabaseConfig[User]("users",CodecRepository.USER)
   val otpDatabase: ICrud[Otp] = new DatabaseConfig[Otp]("userOtp",CodecRepository.OTP)
   val productDatabase: ICrudRepository[Product] = new DatabaseConfig[Product]("products",CodecRepository.PRODUCT)
 
-  // mysql product table
-  //val productDatabase: ICrud[Product] = new ProductTable("products")
-  //val productDatabase: ICrudRepository[Product] = new ProductTable("products")
 
   //All managers
   val defaultUserManager: UserManager = new UserManager(userDatabase, otpDatabase)
-  //val defaultProductManager: ProductManager = new ProductManager(productDatabase,userDatabase)
-  val defaultProductManager: ProductManager = new ProductManager(productDatabase)
+  val defaultProductManager: ProductManager = new ProductManager(productDatabase,userDatabase)
 
   def route(userManager: UserManager, productManager: ProductManager): Route = {
 

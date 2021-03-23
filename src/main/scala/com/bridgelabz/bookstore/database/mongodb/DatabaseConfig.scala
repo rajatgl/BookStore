@@ -61,7 +61,7 @@ class DatabaseConfig[T: scala.reflect.ClassTag](collectionName: String,
    * @param fieldName fieldName to search for in database
    * @return any status identifier for find by value operation
    */
-  override def findByValue(identifier: Any, fieldName: String): Future[Any] = {
+  override def findById(identifier: Any, fieldName: String): Future[Any] = {
     collection().find(equal(fieldName,identifier)).toFuture()
   }
 }

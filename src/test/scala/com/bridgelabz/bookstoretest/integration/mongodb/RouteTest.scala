@@ -30,7 +30,7 @@ class RouteTest extends AnyWordSpec
 
   var token: String = "invalid_token"
 
-  val userDatabase: ICrud[User] = new DatabaseConfig[User](
+  val userDatabase: ICrudRepository[User] = new DatabaseConfig[User](
     "userTest",
     CodecRepository.USER
   )
@@ -46,7 +46,7 @@ class RouteTest extends AnyWordSpec
   )
 
   val userManager: UserManager = new UserManager(userDatabase, otpDatabase)
-  val productManager : ProductManager = new ProductManager(productDatabase)
+  val productManager : ProductManager = new ProductManager(productDatabase,userDatabase)
   //val productManager : ProductManager = new ProductManager(productDatabase,userDatabase)
   lazy val routes: UserRoutes = new UserRoutes(userManager)
   lazy val productRoutes: ProductRoutes = new ProductRoutes(productManager)
@@ -173,12 +173,12 @@ class RouteTest extends AnyWordSpec
         val jsonRequest = ByteString(
           s"""
              |{
-             |    "productId": ${TestVariables.product().productId},
+             |    "productId": "${TestVariables.product().productId}",
              |    "author": "${TestVariables.product().author}",
              |    "title": "${TestVariables.product().title}",
              |    "image": "${TestVariables.product().image}",
-             |    "quantity": ${TestVariables.product().quantity},
-             |    "price":${TestVariables.product().price},
+             |    "quantity": "${TestVariables.product().quantity}",
+             |    "price":"${TestVariables.product().price}",
              |    "description":"${TestVariables.product().description}"
              |}
              |""".stripMargin
@@ -198,7 +198,7 @@ class RouteTest extends AnyWordSpec
 
         Get("/products?name="+TestVariables.product().author) ~> productRoutes.getProductRoute ~>
         check {
-          assert(status == StatusCodes.OK)
+          assert(status == StatusCodes.NOT_FOUND)
         }
     }
   }
