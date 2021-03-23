@@ -7,8 +7,8 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.util.ByteString
 import com.bridgelabz.bookstore.database.interfaces.ICrud
 import com.bridgelabz.bookstore.database.managers.UserManager
-import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseConfig}
-import com.bridgelabz.bookstore.database.mysql.UserTable
+import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection}
+import com.bridgelabz.bookstore.database.mysql.tables.UserTable
 import com.bridgelabz.bookstore.models.{Otp, User}
 import com.bridgelabz.bookstore.routes.UserRoutes
 import com.bridgelabz.bookstoretest.TestVariables
@@ -29,7 +29,7 @@ class RouteTest extends AnyWordSpec
 
   val userDatabase: ICrud[User] = new UserTable("test")
 
-  val otpDatabase: ICrud[Otp] = new DatabaseConfig[Otp](
+  val otpDatabase: ICrud[Otp] = new DatabaseCollection[Otp](
     "userOtpTest",
     CodecRepository.OTP
   )
@@ -63,7 +63,7 @@ class RouteTest extends AnyWordSpec
     }
 
     "Utility test to verify the user" in {
-      userManager.verifyUser(TestVariables.user().email)
+      userManager.verifyUserEmail(TestVariables.user().email)
     }
 
     "Route should verify a user account for Get request to /verify" in {

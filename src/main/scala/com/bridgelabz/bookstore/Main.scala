@@ -5,10 +5,10 @@ import akka.http.javadsl.model.StatusCodes
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives.{complete, extractUri, handleExceptions}
 import akka.http.scaladsl.server.{Directives, ExceptionHandler, Route}
-import com.bridgelabz.bookstore.database.interfaces.{ICrud, IProductManager, IUserManager}
-import com.bridgelabz.bookstore.database.managers.{ProductManager, UserManager}
-import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseConfig}
-import com.bridgelabz.bookstore.database.mysql.ProductTable
+import com.bridgelabz.bookstore.database.interfaces.{ICrud, ICrudRepository, IProductManager, IUserManager}
+import com.bridgelabz.bookstore.database.managers.{ProductManager, ProductManager2, UserManager, UserManager2}
+import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection, DatabaseCollection2}
+import com.bridgelabz.bookstore.database.mysql.tables.{ProductTable, ProductTable2}
 import com.bridgelabz.bookstore.marshallers.OutputMessageJsonSupport
 import com.bridgelabz.bookstore.models.{Otp, OutputMessage, Product, User}
 import com.bridgelabz.bookstore.routes.{ProductRoutes, UserRoutes}
@@ -53,15 +53,15 @@ object Main extends App with OutputMessageJsonSupport {
   }
 
   //All databases
-  val userCollection: ICrud[User] = new DatabaseConfig[User]("users",CodecRepository.USER)
-  val otpCollection: ICrud[Otp] = new DatabaseConfig[Otp]("userOtp",CodecRepository.OTP)
-  //val productCollection: ICrud[Product] = new DatabaseConfig[Product]("products",CodecRepository.PRODUCT)
-  val productCollection: ICrud[Product] = new ProductTable("products")
+  val userCollection: ICrudRepository[User] = new DatabaseCollection2[User]("users",CodecRepository.USER)
+  val otpCollection: ICrudRepository[Otp] = new DatabaseCollection2[Otp]("userOtp",CodecRepository.OTP)
+  //val productCollection: ICrudRepository[Product] = new DatabaseCollection2[Product]("products",CodecRepository.PRODUCT)
+  val productCollection: ICrudRepository[Product] = new ProductTable2("products")
 
 
   //All managers
-  val defaultUserManager: IUserManager = new UserManager(userCollection, otpCollection )
-  val defaultProductManager: IProductManager = new ProductManager(productCollection,userCollection)
+  val defaultUserManager: IUserManager = new UserManager2(userCollection, otpCollection)
+  val defaultProductManager: IProductManager = new ProductManager2(productCollection,userCollection)
 
   def route(userManager: IUserManager, productManager: IProductManager): Route = {
 

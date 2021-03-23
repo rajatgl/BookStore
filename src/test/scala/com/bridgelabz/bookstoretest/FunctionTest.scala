@@ -30,12 +30,12 @@ class FunctionTest extends AnyFlatSpec with MockitoSugar{
 
   "Does Exist" should "return false if email is not registered with database" in {
     when(iCrudUserMock.read()).thenReturn(Future[Seq[User]](Seq[User]()))
-    assert(!Await.result(userManager.doesExist("test@test.com"),100.millis))
+    assert(!Await.result(userManager.doesUserExist("test@test.com"),100.millis))
   }
 
   "Does Exist" should "return true if email is registered with database" in {
     when(iCrudUserMock.read()).thenReturn(Future[Seq[User]](Seq[User](TestVariables.user())))
-    assert(Await.result(userManager.doesExist("test502"),100.millis))
+    assert(Await.result(userManager.doesUserExist("test502"),100.millis))
   }
 
   "Register" should "return failed future in case of bad email pattern" in {
@@ -165,7 +165,7 @@ class FunctionTest extends AnyFlatSpec with MockitoSugar{
     when(iCrudOtpMock.read()).thenReturn(
       Future[Seq[Otp]](Seq()))
 
-    assert(!Await.result(userManager.verifyOpt(TestVariables.otp()),200.millis))
+    assert(!Await.result(userManager.doesOtpExist(TestVariables.otp()),200.millis))
   }
 
   "verifyOtp" should "return future of true if matching Otp is found in the database" in {
@@ -177,13 +177,13 @@ class FunctionTest extends AnyFlatSpec with MockitoSugar{
     when(iCrudUserMock.update(TestVariables.user().email,TestVariables.user(verificationComplete = true),"email")).thenReturn(
       Future[Seq[Otp]](Seq(TestVariables.otp())))
 
-    assert(Await.result(userManager.verifyOpt(TestVariables.otp()),200.millis))
+    assert(Await.result(userManager.doesOtpExist(TestVariables.otp()),200.millis))
   }
 
   "verifyUser" should "throw account-does-not-exist exception when user to be verified is not in database" in {
     when(iCrudUserMock.read()).thenReturn(Future(Seq()))
 
-    val verifyTest = userManager.verifyUser(TestVariables.user().email)
+    val verifyTest = userManager.verifyUserEmail(TestVariables.user().email)
     ScalaFutures.whenReady(verifyTest.failed){
       e => e shouldBe a[AccountDoesNotExistException]
     }

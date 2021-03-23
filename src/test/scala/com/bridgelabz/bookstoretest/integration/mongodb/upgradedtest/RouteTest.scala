@@ -1,4 +1,4 @@
-package com.bridgelabz.bookstoretest.integration.mongodb
+package com.bridgelabz.bookstoretest.integration.mongodb.upgradedtest
 
 import akka.http.javadsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.OAuth2BearerToken

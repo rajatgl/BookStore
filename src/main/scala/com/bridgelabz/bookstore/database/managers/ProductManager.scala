@@ -12,7 +12,8 @@ import scala.concurrent.Future
  * Class: ProductManager.scala
  * Author: Ruchir Dixit.
  */
-class ProductManager(productDatabase : ICrud[Product], userDatabase : ICrud[User]) extends IProductManager{
+class ProductManager(var productDatabase : ICrud[Product], var userDatabase : ICrud[User])
+  extends IProductManager{
 
   /**
    *
@@ -20,25 +21,33 @@ class ProductManager(productDatabase : ICrud[Product], userDatabase : ICrud[User
    * @return : Future of true if added successfully or else future of false
    */
   def addProduct(userId: String,product: Product) : Future[Boolean] = {
-    var isExist = false
-    userDatabase.read().map(users => {
-      for (user <- users) {
-        if (userId.equals(user.userId)) {
-          if(user.verificationComplete) {
-            isExist = true
-          }
-          else{
-            throw new UnverifiedAccountException
-          }
+
+    getUserByUserId(userId).map(optionalUser => {
+      if(optionalUser.isDefined){
+        val user = optionalUser.get
+        if(user.verificationComplete) {
+          productDatabase.create(product)
+          true
+        }
+        else{
+          throw new UnverifiedAccountException
         }
       }
-      if(isExist){
-        productDatabase.create(product)
-        true
-      }
-      else {
+      else{
         throw new AccountDoesNotExistException
       }
+    })
+  }
+
+  def getUserByUserId(userId: String): Future[Option[User]] = {
+    userDatabase.read().map(users => {
+      var searchedUser:Option[User] = None
+      for (user <- users) {
+        if (userId.equals(user.userId)) {
+          searchedUser = Some(user)
+        }
+      }
+      searchedUser
     })
   }
 
@@ -70,6 +79,7 @@ class ProductManager(productDatabase : ICrud[Product], userDatabase : ICrud[User
     else{
       productDatabase.read()
     }
+
   }
 
 }

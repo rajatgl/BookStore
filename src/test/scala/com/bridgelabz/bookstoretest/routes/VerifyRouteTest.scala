@@ -23,7 +23,7 @@ class VerifyRouteTest
 
   "This service" should {
     "Route should verify a user account for Get request to /verify" in {
-      when(mockUserManager.verifyOpt(
+      when(mockUserManager.verifyUser(
         TestVariables.otp())).thenReturn(Future.successful(true))
 
       Get(s"/verify?otp=${TestVariables.otp().data}&email=${TestVariables.otp().email}") ~> route ~>
@@ -33,7 +33,7 @@ class VerifyRouteTest
     }
 
     "Route should not verify a user account for Get request to /verify if otp & email did not match" in {
-      when(mockUserManager.verifyOpt(
+      when(mockUserManager.verifyUser(
         TestVariables.otp())).thenReturn(Future.successful(false))
 
       Get(s"/verify?otp=${TestVariables.otp().data}&email=${TestVariables.otp().email}") ~> route ~>
@@ -43,7 +43,7 @@ class VerifyRouteTest
     }
 
     "Route should not verify a user account for Get request to /verify if some error occurred" in {
-      when(mockUserManager.verifyOpt(
+      when(mockUserManager.verifyUser(
         TestVariables.otp())).thenReturn(Future.failed(new Exception))
 
       Get(s"/verify?otp=${TestVariables.otp().data}&email=${TestVariables.otp().email}") ~> route ~>
