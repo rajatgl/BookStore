@@ -1,17 +1,19 @@
 package com.bridgelabz.bookstore.database.managers
 
 import java.util.Date
-import com.bridgelabz.bookstore.database.interfaces.ICrud
+
+import com.bridgelabz.bookstore.database.interfaces.{ICrud, IUserManager}
 import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, BadEmailPatternException, PasswordMismatchException, UnverifiedAccountException}
 import com.bridgelabz.bookstore.jwt.TokenManager
 import com.bridgelabz.bookstore.managers.EmailManager
 import com.bridgelabz.bookstore.models.{Address, Otp, User}
 import com.bridgelabz.bookstore.utils.Utilities
 import com.typesafe.scalalogging.Logger
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
+class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) extends IUserManager {
 
   val logger: Logger = Logger("User-Manager")
 
@@ -36,7 +38,7 @@ class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
    * @param userId to be checked for existence in database
    * @return Future of true if email exists in database else false
    */
-  def doesExist(userId: String): Future[Boolean] =
+  def doesUserExist(userId: String): Future[Boolean] =
     userDatabase.read().map(users => {
       var isExist = false
       for (user <- users) {
@@ -55,7 +57,7 @@ class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
   def register(user: User): Future[Boolean] = {
     if (emailRegex(user.email)) {
 
-      val existsFuture = doesExist(user.userId)
+      val existsFuture = doesUserExist(user.userId)
       existsFuture.map(exists => {
         if (exists) {
           false
@@ -78,17 +80,17 @@ class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
 
   /**
    *
-   * @param otp to be verified
+   * @param token to be verified
    * @return future of true if otp verified else false
    */
-  def verifyOpt(otp: Otp): Future[Boolean] = {
+  def verifyUser(token: Otp): Future[Boolean] = {
     otpDatabase.read().map(otps => {
       var isVerified = false
       otps.foreach(currentOtp =>
-        if (currentOtp.email.equals(otp.email) && currentOtp.data.equals(otp.data)) {
+        if (currentOtp.email.equals(token.email) && currentOtp.data.equals(token.data)) {
           isVerified = true
-          verifyUser(otp.email)
-          otpDatabase.delete(otp.email,"email")
+          verifyUserEmail(token.email)
+          otpDatabase.delete(token.email,"email")
         }
       )
       isVerified
@@ -100,7 +102,7 @@ class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
    * @param email of the user to be verified
    * @return future of true if user verified else future fails
    */
-  def verifyUser(email: String): Future[Boolean] = {
+  def verifyUserEmail(email: String): Future[Boolean] = {
     getUser(email).map(user => {
       if(user.isDefined){
         val newUser = User(
@@ -243,5 +245,4 @@ class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
       Future.failed(new BadEmailPatternException)
     }
   }
-
 }
