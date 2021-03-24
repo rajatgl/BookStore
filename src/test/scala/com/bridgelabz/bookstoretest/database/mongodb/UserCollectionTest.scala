@@ -1,7 +1,7 @@
 package com.bridgelabz.bookstoretest.database.mongodb
 
 import com.bridgelabz.bookstore.database.interfaces.ICrud
-import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseConfig}
+import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection}
 import com.bridgelabz.bookstore.models.User
 import com.bridgelabz.bookstoretest.TestVariables
 import org.scalatest.flatspec.AnyFlatSpec
@@ -10,7 +10,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class UserCollectionTest extends AnyFlatSpec {
-  val userCollection: ICrud[User] = new DatabaseConfig[User]("usersTest", CodecRepository.USER)
+  val userCollection: ICrud[User] = new DatabaseCollection[User]("usersTest", CodecRepository.USER)
 
   "When created user" should "return Future of Completed " in {
     val user = TestVariables.user()

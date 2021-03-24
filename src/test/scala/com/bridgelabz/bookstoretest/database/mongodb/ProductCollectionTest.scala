@@ -1,6 +1,6 @@
 package com.bridgelabz.bookstoretest.database.mongodb
 
-import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseConfig}
+import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection}
 import com.bridgelabz.bookstore.models.Product
 import com.bridgelabz.bookstoretest.TestVariables
 import org.scalatest.flatspec.AnyFlatSpec
@@ -9,7 +9,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class ProductCollectionTest extends AnyFlatSpec{
-  val productCollection: DatabaseConfig[Product] = new DatabaseConfig[Product]("productTest", CodecRepository.PRODUCT)
+  val productCollection: DatabaseCollection[Product] = new DatabaseCollection[Product]("productTest", CodecRepository.PRODUCT)
 
   "When product is created" should "return Future of Completed " in {
     val product = TestVariables.product()

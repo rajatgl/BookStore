@@ -13,7 +13,7 @@ import scala.concurrent.Future
  * Class: DatabaseConfig.scala
  * Author: Ruchir Dixit
  */
-class DatabaseConfig[T: scala.reflect.ClassTag](collectionName: String,
+class DatabaseCollection[T: scala.reflect.ClassTag](collectionName: String,
                                                     codecName: CodecNames,
                                                     databaseName: String = sys.env("DATABASE_NAME"),
                                                     mongoDbConfig: MongoConfig = new MongoConfig())

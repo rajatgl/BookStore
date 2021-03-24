@@ -1,7 +1,7 @@
 package com.bridgelabz.bookstoretest.database.mongodb
 
 import com.bridgelabz.bookstore.database.interfaces.ICrud
-import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseConfig}
+import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection}
 import com.bridgelabz.bookstore.models.Otp
 import com.bridgelabz.bookstoretest.TestVariables
 import org.scalatest.flatspec.AnyFlatSpec
@@ -10,7 +10,7 @@ import org.scalatest.time.SpanSugar.convertIntToGrainOfTime
 import scala.concurrent.Await
 
 class OtpCollectionTest extends AnyFlatSpec {
-  val otpCollection: ICrud[Otp] = new DatabaseConfig[Otp]("userOtpTest", CodecRepository.OTP)
+  val otpCollection: ICrud[Otp] = new DatabaseCollection[Otp]("userOtpTest", CodecRepository.OTP)
 
   "When created Otp" should "return Future of Completed " in {
     val otp = TestVariables.otp()

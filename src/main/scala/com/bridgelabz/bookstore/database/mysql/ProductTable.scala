@@ -11,7 +11,7 @@ import scala.concurrent.Future
  * Class: ProductTable.scala
  * Author: Rajat G.L.
  */
-class ProductTable(tableName: String) extends ICrudRepository[Product]{
+class ProductTable(tableName: String) extends ICrud[Product]{
 
   private def createTable() = {
     val createQuery: String =
@@ -53,7 +53,7 @@ class ProductTable(tableName: String) extends ICrudRepository[Product]{
         Future.successful(MySqlUtils.executeUpdate(query) > 0)
     }
     catch{
-      case exception: Exception => Future.failed(new Exception("Create-Product: FAILED"))
+      case _: Exception => Future.failed(new Exception("Create-Product: FAILED"))
     }
   }
 
@@ -117,5 +117,4 @@ class ProductTable(tableName: String) extends ICrudRepository[Product]{
     }
   }
 
-  override def findByValue(identifier: Any, fieldName: String): Future[Any] = ???
 }

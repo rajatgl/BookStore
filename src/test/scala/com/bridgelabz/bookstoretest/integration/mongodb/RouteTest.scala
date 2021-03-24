@@ -7,7 +7,7 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.util.ByteString
 import com.bridgelabz.bookstore.database.interfaces.{ICrud, ICrudRepository}
 import com.bridgelabz.bookstore.database.managers.{ProductManager, UserManager}
-import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseConfig}
+import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection}
 import com.bridgelabz.bookstore.jwt.TokenManager
 import com.bridgelabz.bookstore.models.{Otp, Product, User}
 import com.bridgelabz.bookstore.routes.{ProductRoutes, UserRoutes}
@@ -30,17 +30,17 @@ class RouteTest extends AnyWordSpec
 
   var token: String = "invalid_token"
 
-  val userDatabase: ICrudRepository[User] = new DatabaseConfig[User](
+  val userDatabase: ICrudRepository[User] = new DatabaseCollection[User](
     "userTest",
     CodecRepository.USER
   )
 
-  val otpDatabase: ICrud[Otp] = new DatabaseConfig[Otp](
+  val otpDatabase: ICrud[Otp] = new DatabaseCollection[Otp](
     "userOtpTest",
     CodecRepository.OTP
   )
 
-  val productDatabase: ICrudRepository[Product] = new DatabaseConfig[Product](
+  val productDatabase: ICrudRepository[Product] = new DatabaseCollection[Product](
     "productTest",
     CodecRepository.PRODUCT
   )

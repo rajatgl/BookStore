@@ -7,7 +7,7 @@ import akka.http.scaladsl.server.Directives.{complete, extractUri, handleExcepti
 import akka.http.scaladsl.server.{Directives, ExceptionHandler, Route}
 import com.bridgelabz.bookstore.database.interfaces.{ICrud, ICrudRepository}
 import com.bridgelabz.bookstore.database.managers.{ProductManager, UserManager}
-import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseConfig}
+import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection}
 import com.bridgelabz.bookstore.database.mysql.ProductTable
 import com.bridgelabz.bookstore.marshallers.OutputMessageJsonSupport
 import com.bridgelabz.bookstore.models.{Otp, OutputMessage, Product, User}
@@ -52,15 +52,14 @@ object Main extends App with OutputMessageJsonSupport {
       }
   }
 
-  //All databases
-  val userDatabase: ICrudRepository[User] = new DatabaseConfig[User]("users",CodecRepository.USER)
-  val otpDatabase: ICrud[Otp] = new DatabaseConfig[Otp]("userOtp",CodecRepository.OTP)
-  val productDatabase: ICrudRepository[Product] = new DatabaseConfig[Product]("products",CodecRepository.PRODUCT)
-
+  //All collections
+  val userCollection: ICrudRepository[User] = new DatabaseCollection[User]("users",CodecRepository.USER)
+  val otpCollection: ICrud[Otp] = new DatabaseCollection[Otp]("userOtp",CodecRepository.OTP)
+  val productCollection: ICrudRepository[Product] = new DatabaseCollection[Product]("products",CodecRepository.PRODUCT)
 
   //All managers
-  val defaultUserManager: UserManager = new UserManager(userDatabase, otpDatabase)
-  val defaultProductManager: ProductManager = new ProductManager(productDatabase,userDatabase)
+  val defaultUserManager: UserManager = new UserManager(userCollection, otpCollection)
+  val defaultProductManager: ProductManager = new ProductManager(productCollection,userCollection)
 
   def route(userManager: UserManager, productManager: ProductManager): Route = {
 
