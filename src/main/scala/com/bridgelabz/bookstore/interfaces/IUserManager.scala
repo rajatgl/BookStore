@@ -1,4 +1,4 @@
-package com.bridgelabz.bookstore.database.interfaces
+package com.bridgelabz.bookstore.interfaces
 
 import com.bridgelabz.bookstore.models.{Address, Otp, User}
 

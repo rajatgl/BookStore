@@ -5,10 +5,11 @@ import akka.http.javadsl.model.StatusCodes
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives.{complete, extractUri, handleExceptions}
 import akka.http.scaladsl.server.{Directives, ExceptionHandler, Route}
-import com.bridgelabz.bookstore.database.interfaces.{ICrud, ICrudRepository, IProductManager, IUserManager}
+import com.bridgelabz.bookstore.database.interfaces.{ICrud, ICrudRepository}
 import com.bridgelabz.bookstore.database.managers.{ProductManager, ProductManager2, UserManager, UserManager2}
 import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection, DatabaseCollection2}
 import com.bridgelabz.bookstore.database.mysql.tables.{ProductTable, ProductTable2}
+import com.bridgelabz.bookstore.interfaces.{IProductManager, IUserManager}
 import com.bridgelabz.bookstore.marshallers.OutputMessageJsonSupport
 import com.bridgelabz.bookstore.models.{Otp, OutputMessage, Product, User}
 import com.bridgelabz.bookstore.routes.{ProductRoutes, UserRoutes}

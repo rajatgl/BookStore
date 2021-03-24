@@ -1,7 +1,8 @@
 package com.bridgelabz.bookstore.database.managers
 
-import com.bridgelabz.bookstore.database.interfaces.{ICrud, IProductManager}
+import com.bridgelabz.bookstore.database.interfaces.ICrud
 import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, ProductDoesNotExistException, UnverifiedAccountException}
+import com.bridgelabz.bookstore.interfaces.IProductManager
 import com.bridgelabz.bookstore.models.{Product, User}
 
 import scala.concurrent.ExecutionContext.Implicits.global
