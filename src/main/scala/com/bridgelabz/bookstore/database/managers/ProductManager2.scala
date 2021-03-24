@@ -10,7 +10,7 @@ class ProductManager2(productDatabase : ICrudRepository[Product], userDatabase :
   extends ProductManager(productDatabase,userDatabase) {
 
   override def getUserByUserId(userId: String): Future[Option[User]] = {
-    userDatabase.readByValue(userId, "userId").map(seq => {
+    userDatabase.read(userId, "userId").map(seq => {
       seq.headOption
     })
   }

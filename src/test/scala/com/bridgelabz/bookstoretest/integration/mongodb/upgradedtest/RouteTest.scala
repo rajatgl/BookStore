@@ -5,9 +5,9 @@ import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import akka.http.scaladsl.model.{HttpEntity, HttpMethods, HttpRequest, MediaTypes}
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.util.ByteString
-import com.bridgelabz.bookstore.database.interfaces.ICrud
-import com.bridgelabz.bookstore.database.managers.{ProductManager, UserManager}
-import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection}
+import com.bridgelabz.bookstore.database.interfaces.{ICrud, ICrudRepository}
+import com.bridgelabz.bookstore.database.managers.{ProductManager, ProductManager2, UserManager, UserManager2}
+import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection, DatabaseCollection2}
 import com.bridgelabz.bookstore.models._
 import com.bridgelabz.bookstore.routes.{ProductRoutes, UserRoutes}
 import com.bridgelabz.bookstoretest.TestVariables
@@ -26,23 +26,23 @@ class RouteTest extends AnyWordSpec
 
   var token: String = "invalid_token"
 
-  val userDatabase: ICrud[User] = new DatabaseCollection[User](
+  val userDatabase: DatabaseCollection2[User] = new DatabaseCollection2[User](
     "userTest",
     CodecRepository.USER
   )
 
-  val otpDatabase: ICrud[Otp] = new DatabaseCollection[Otp](
+  val otpDatabase: DatabaseCollection2[Otp] = new DatabaseCollection2[Otp](
     "userOtpTest",
     CodecRepository.OTP
   )
 
-  val productDatabase: ICrud[Product] = new DatabaseCollection[Product](
+  val productDatabase: DatabaseCollection2[Product] = new DatabaseCollection2[Product](
     "productTest",
     CodecRepository.PRODUCT
   )
 
-  val userManager: UserManager = new UserManager(userDatabase, otpDatabase)
-  val productManager: ProductManager = new ProductManager(productDatabase,userDatabase)
+  val userManager: UserManager2 = new UserManager2(userDatabase, otpDatabase)
+  val productManager: ProductManager2 = new ProductManager2(productDatabase,userDatabase)
 
   lazy val routes: UserRoutes = new UserRoutes(userManager)
   lazy val productRoutes: ProductRoutes = new ProductRoutes(productManager)
@@ -199,6 +199,10 @@ class RouteTest extends AnyWordSpec
         }
     }
 
-
+    "utility to delete added users" in {
+      userDatabase.collection().drop()
+      otpDatabase.collection().drop()
+      productDatabase.collection().drop()
+    }
   }
 }

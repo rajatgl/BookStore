@@ -19,7 +19,7 @@ class FunctionTest extends AnyFlatSpec with MockitoSugar{
 
   val iCrudUserMock: ICrud[User] = mock[ICrud[User]]
   val iCrudOtpMock: ICrud[Otp] = mock[ICrud[Otp]]
-  val userManager: UserManager = new UserManager(iCrudUserMock,iCrudOtpMock)
+  val userManager: UserManager = new UserManager(iCrudUserMock, iCrudOtpMock)
 
   "Email Regex" should "return false if email has bad pattern" in {
     assert(!userManager.emailRegex("test"))

@@ -17,19 +17,22 @@ import org.scalatest.concurrent.ScalaFutures
 import scala.concurrent.{Await, Future}
 
 class ProductManagerTest extends AnyFlatSpec with MockitoSugar {
+
   val iCrudProductMock: ICrud[Product] = mock[ICrud[Product]]
   val iCrudUserMock: ICrud[User] = mock[ICrud[User]]
   val productManager: ProductManager = new ProductManager(iCrudProductMock,iCrudUserMock)
 
   "Add Product" should "return true if product added successfully" in {
     when(iCrudProductMock.create(TestVariables.product())).thenReturn(Future(true))
+    when(iCrudUserMock.read()).thenReturn(Future(Seq(TestVariables.user(verificationComplete = true))))
+
     assert(Await.result(productManager.addProduct(TestVariables.user().userId,TestVariables.product()),1500.seconds))
   }
 
   "Get product" should "return true if product fetched successfully" in {
     when(iCrudProductMock.read()).thenReturn(Future[Seq[Product]](Seq[Product](TestVariables.product())))
     assert(Await.result(productManager.getProduct(Some("Xrnes")),1500.seconds)
-      == Product(530,"Xrnes","TestProduct","12323434",2,3000.0,"This is a test product"))
+      == Seq(TestVariables.product()))
   }
 
   "Get Product which doesn't exist" should "return Product Not found exception" in {
