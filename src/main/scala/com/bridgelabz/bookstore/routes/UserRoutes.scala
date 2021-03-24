@@ -1,20 +1,22 @@
 package com.bridgelabz.bookstore.routes
 
 import java.util.Date
+
 import akka.http.javadsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Directives.{complete, entity, headerValueByName, onComplete, parameters, path, post, respondWithHeaders}
 import akka.http.scaladsl.server.{Directives, Route}
-import com.bridgelabz.bookstore.database.managers.UserManager
+import com.bridgelabz.bookstore.database.interfaces.IUserManager
 import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, BadEmailPatternException, PasswordMismatchException, UnverifiedAccountException}
 import com.bridgelabz.bookstore.jwt.TokenManager
 import com.bridgelabz.bookstore.marshallers.{AddAddressJsonSupport, LoginJsonSupport, OutputMessageJsonSupport, RegisterJsonSupport}
 import com.bridgelabz.bookstore.models._
 import com.typesafe.scalalogging.Logger
+
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-class UserRoutes(userManager: UserManager)
+class UserRoutes(userManager: IUserManager)
   extends RegisterJsonSupport
     with OutputMessageJsonSupport
     with LoginJsonSupport
@@ -190,7 +192,7 @@ class UserRoutes(userManager: UserManager)
     path("verify") {
       parameters("otp", "email"){(otp, email) =>
         val otpData = Otp(otp.toInt, email)
-        val otpFuture = userManager.verifyOpt(otpData)
+        val otpFuture = userManager.verifyUser(otpData)
         onComplete(otpFuture){
           case Success(value) =>
             if(value){

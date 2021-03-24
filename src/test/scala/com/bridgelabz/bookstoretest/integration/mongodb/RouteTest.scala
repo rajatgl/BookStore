@@ -5,19 +5,15 @@ import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import akka.http.scaladsl.model.{HttpEntity, HttpMethods, HttpRequest, MediaTypes}
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.util.ByteString
-import com.bridgelabz.bookstore.database.interfaces.{ICrud, ICrudRepository}
+import com.bridgelabz.bookstore.database.interfaces.ICrud
 import com.bridgelabz.bookstore.database.managers.{ProductManager, UserManager}
 import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection}
-import com.bridgelabz.bookstore.jwt.TokenManager
-import com.bridgelabz.bookstore.models.{Otp, Product, User}
+import com.bridgelabz.bookstore.models._
 import com.bridgelabz.bookstore.routes.{ProductRoutes, UserRoutes}
 import com.bridgelabz.bookstoretest.TestVariables
-import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
-
-import scala.concurrent.Future
 
 
 /**
@@ -30,7 +26,7 @@ class RouteTest extends AnyWordSpec
 
   var token: String = "invalid_token"
 
-  val userDatabase: ICrudRepository[User] = new DatabaseCollection[User](
+  val userDatabase: ICrud[User] = new DatabaseCollection[User](
     "userTest",
     CodecRepository.USER
   )
@@ -40,14 +36,14 @@ class RouteTest extends AnyWordSpec
     CodecRepository.OTP
   )
 
-  val productDatabase: ICrudRepository[Product] = new DatabaseCollection[Product](
+  val productDatabase: ICrud[Product] = new DatabaseCollection[Product](
     "productTest",
     CodecRepository.PRODUCT
   )
 
   val userManager: UserManager = new UserManager(userDatabase, otpDatabase)
-  val productManager : ProductManager = new ProductManager(productDatabase,userDatabase)
-  //val productManager : ProductManager = new ProductManager(productDatabase,userDatabase)
+  val productManager: ProductManager = new ProductManager(productDatabase,userDatabase)
+
   lazy val routes: UserRoutes = new UserRoutes(userManager)
   lazy val productRoutes: ProductRoutes = new ProductRoutes(productManager)
 
@@ -98,14 +94,14 @@ class RouteTest extends AnyWordSpec
     }
 
     "Utility test to verify the user" in {
-      userManager.verifyUser(TestVariables.user().email)
+      userManager.verifyUserEmail(TestVariables.user().email)
     }
 
     "Route should verify a user account for Get request to /verify" in {
 
       Get(s"/verify?otp=${TestVariables.otp().data}&email=${TestVariables.otp().email}") ~> routes.verifyRoute ~>
         check {
-          assert(status === StatusCodes.BAD_REQUEST)
+          assert(status === StatusCodes.OK)
         }
     }
 
@@ -167,39 +163,42 @@ class RouteTest extends AnyWordSpec
       }
     }
 
-    "This service" should {
-      "Route should add product for Post request to /addProduct" in {
+    "Route should add product to a book-store for Post request to /product" in {
 
-        val jsonRequest = ByteString(
-          s"""
-             |{
-             |    "productId": "${TestVariables.product().productId}",
-             |    "author": "${TestVariables.product().author}",
-             |    "title": "${TestVariables.product().title}",
-             |    "image": "${TestVariables.product().image}",
-             |    "quantity": "${TestVariables.product().quantity}",
-             |    "price":"${TestVariables.product().price}",
-             |    "description":"${TestVariables.product().description}"
-             |}
-             |""".stripMargin
-        )
-        val postRequest = HttpRequest(
-          HttpMethods.POST,
-          uri = "/addProduct",
-          entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
-        )
-        postRequest ~> addHeader("Authorization", s"Bearer $token") ~> productRoutes.addProductRoute ~> check {
-          assert(status === StatusCodes.OK)
-        }
+      val jsonRequest = ByteString(
+        s"""
+           |{
+           |    "productId": ${TestVariables.product().productId},
+           |    "author": "${TestVariables.product().author}",
+           |    "title": "${TestVariables.product().title}",
+           |    "image": "${TestVariables.product().image}",
+           |    "quantity": ${TestVariables.product().quantity},
+           |    "price": ${TestVariables.product().price},
+           |    "description": "${TestVariables.product().description}"
+           |}
+           |""".stripMargin
+      )
+
+      val postRequest = HttpRequest(
+        HttpMethods.POST,
+        uri = "/product",
+        entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
+      )
+
+      postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> productRoutes.addProductRoute ~> check {
+        assert(status === StatusCodes.OK)
       }
     }
 
-    "Route should get product for Get request to /products" in {
+    "Route should fetch all products from the book-store for Get request to /products" in {
 
-        Get("/products?name="+TestVariables.product().author) ~> productRoutes.getProductRoute ~>
+      Get("/products") ~>
+        productRoutes.getProductRoute ~>
         check {
-          assert(status == StatusCodes.NOT_FOUND)
+          status.equals(StatusCodes.OK)
         }
     }
+
+
   }
 }

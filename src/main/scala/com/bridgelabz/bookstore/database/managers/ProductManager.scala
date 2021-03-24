@@ -1,32 +1,52 @@
 package com.bridgelabz.bookstore.database.managers
 
-import com.bridgelabz.bookstore.database.interfaces.{ICrud, ICrudRepository}
-import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, ProductDoesNotExistException}
-import com.typesafe.scalalogging.LazyLogging
+import com.bridgelabz.bookstore.database.interfaces.{ICrud, IProductManager}
+import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, ProductDoesNotExistException, UnverifiedAccountException}
+import com.bridgelabz.bookstore.models.{Product, User}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import com.bridgelabz.bookstore.models.{Product, User}
+
 /**
  * Created on 3/11/2021.
  * Class: ProductManager.scala
  * Author: Ruchir Dixit.
  */
-class ProductManager(productCollection : ICrudRepository[Product],userCollection : ICrudRepository[User]) extends LazyLogging{
+class ProductManager(var productDatabase : ICrud[Product], var userDatabase : ICrud[User])
+  extends IProductManager{
   /**
    *
    * @param product : product to be added in database
    * @return : Future of true if added successfully or else future of false
    */
   def addProduct(userId: String,product: Product) : Future[Boolean] = {
-    userCollection.findById(userId,"userId").map(user => {
-      if (user != "") {
-        productCollection.create(product)
-        true
+
+    getUserByUserId(userId).map(optionalUser => {
+      if(optionalUser.isDefined){
+        val user = optionalUser.get
+        if(user.verificationComplete) {
+          productDatabase.create(product)
+          true
+        }
+        else{
+          throw new UnverifiedAccountException
+        }
       }
-      else {
-        false
+      else{
+        throw new AccountDoesNotExistException
       }
+    })
+  }
+
+  def getUserByUserId(userId: String): Future[Option[User]] = {
+    userDatabase.read().map(users => {
+      var searchedUser:Option[User] = None
+      for (user <- users) {
+        if (userId.equals(user.userId)) {
+          searchedUser = Some(user)
+        }
+      }
+      searchedUser
     })
   }
 
@@ -39,11 +59,11 @@ class ProductManager(productCollection : ICrudRepository[Product],userCollection
     if(fieldValue.isDefined) {
       var doesExist = false
       var productSeq: Seq[Product] = Seq()
-      productCollection.read().map(products => {
+      productDatabase.read().map(products => {
         products.foreach(product => {
-          if (product.author.equals(fieldValue.get) || product.title.equals(fieldValue.get)) {
+          if (product.author.toLowerCase.contains(fieldValue.get.toLowerCase) || product.title.toLowerCase.contains(fieldValue.get.toLowerCase)) {
             doesExist = true
-            productSeq = product.asInstanceOf[Seq[Product]]
+            productSeq = productSeq :+ product
           }
         })
         if (doesExist) {
@@ -55,8 +75,9 @@ class ProductManager(productCollection : ICrudRepository[Product],userCollection
       })
     }
     else{
-      productCollection.read()
+      productDatabase.read()
     }
+
   }
 
 }

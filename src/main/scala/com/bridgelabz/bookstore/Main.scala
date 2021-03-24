@@ -5,10 +5,10 @@ import akka.http.javadsl.model.StatusCodes
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives.{complete, extractUri, handleExceptions}
 import akka.http.scaladsl.server.{Directives, ExceptionHandler, Route}
-import com.bridgelabz.bookstore.database.interfaces.{ICrud, ICrudRepository}
-import com.bridgelabz.bookstore.database.managers.{ProductManager, UserManager}
-import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection}
-import com.bridgelabz.bookstore.database.mysql.ProductTable
+import com.bridgelabz.bookstore.database.interfaces.{ICrud, ICrudRepository, IProductManager, IUserManager}
+import com.bridgelabz.bookstore.database.managers.{ProductManager, ProductManager2, UserManager, UserManager2}
+import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection, DatabaseCollection2}
+import com.bridgelabz.bookstore.database.mysql.tables.{ProductTable, ProductTable2}
 import com.bridgelabz.bookstore.marshallers.OutputMessageJsonSupport
 import com.bridgelabz.bookstore.models.{Otp, OutputMessage, Product, User}
 import com.bridgelabz.bookstore.routes.{ProductRoutes, UserRoutes}
@@ -46,22 +46,24 @@ object Main extends App with OutputMessageJsonSupport {
       }
     case ex: Exception =>
       extractUri { _ =>
-        logger.error("exception : "+ex.getMessage)
+        logger.error(ex.getStackTrace.mkString("Array(", ", ", ")"))
         complete(StatusCodes.INTERNAL_SERVER_ERROR.intValue() ->
           OutputMessage(StatusCodes.INTERNAL_SERVER_ERROR.intValue(), "Some error occurred. Please try again later."))
       }
   }
 
-  //All collections
-  val userCollection: ICrudRepository[User] = new DatabaseCollection[User]("users",CodecRepository.USER)
-  val otpCollection: ICrud[Otp] = new DatabaseCollection[Otp]("userOtp",CodecRepository.OTP)
-  val productCollection: ICrudRepository[Product] = new DatabaseCollection[Product]("products",CodecRepository.PRODUCT)
+  //All databases
+  val userCollection: ICrudRepository[User] = new DatabaseCollection2[User]("users",CodecRepository.USER)
+  val otpCollection: ICrudRepository[Otp] = new DatabaseCollection2[Otp]("userOtp",CodecRepository.OTP)
+  //val productCollection: ICrudRepository[Product] = new DatabaseCollection2[Product]("products",CodecRepository.PRODUCT)
+  val productCollection: ICrudRepository[Product] = new ProductTable2("products")
+
 
   //All managers
-  val defaultUserManager: UserManager = new UserManager(userCollection, otpCollection)
-  val defaultProductManager: ProductManager = new ProductManager(productCollection,userCollection)
+  val defaultUserManager: IUserManager = new UserManager2(userCollection, otpCollection)
+  val defaultProductManager: IProductManager = new ProductManager2(productCollection,userCollection)
 
-  def route(userManager: UserManager, productManager: ProductManager): Route = {
+  def route(userManager: IUserManager, productManager: IProductManager): Route = {
 
     val userRoutes = new UserRoutes(userManager)
     val productRoutes = new ProductRoutes(productManager)

@@ -11,7 +11,6 @@ class DatabaseCollection2[T: scala.reflect.ClassTag](collectionName: String,
                                                      mongoDbConfig: MongoConfig = new MongoConfig())
   extends DatabaseCollection[T](collectionName,codecName,databaseName,mongoDbConfig)
     with ICrudRepository[T]{
-
-  override def findById(identifier: Any, fieldName: String): Future[Seq[T]] = collection().find(equal(fieldName,identifier)).toFuture()
+  override def readByValue(identifier: Any, fieldName: String): Future[Seq[T]] = collection().find(equal(fieldName,identifier)).toFuture()
 
 }

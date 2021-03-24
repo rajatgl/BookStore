@@ -2,7 +2,7 @@ package com.bridgelabz.bookstore.database.mongodb
 
 import com.bridgelabz.bookstore.database.interfaces.{ICrud, ICrudRepository}
 import com.bridgelabz.bookstore.database.mongodb.CodecRepository.CodecNames
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.Logger
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.model.Filters.equal
 
@@ -13,12 +13,14 @@ import scala.concurrent.Future
  * Class: DatabaseConfig.scala
  * Author: Ruchir Dixit
  */
-class DatabaseCollection[T: scala.reflect.ClassTag](collectionName: String,
-                                                    codecName: CodecNames,
-                                                    databaseName: String = sys.env("DATABASE_NAME"),
-                                                    mongoDbConfig: MongoConfig = new MongoConfig())
-  extends ICrudRepository[T] with LazyLogging{
-  logger.info("inside database config")
+class DatabaseCollection[T: scala.reflect.ClassTag](var collectionName: String,
+                                                    var codecName: CodecNames,
+                                                    var databaseName: String = sys.env("DATABASE_NAME"),
+                                                    var mongoDbConfig: MongoConfig = new MongoConfig())
+  extends ICrud[T] {
+
+  val logger: Logger = Logger("Database-Config")
+
   def collection(): MongoCollection[T] = {
 
     val codecRegistry = CodecRepository.getCodecRegistry(codecName)
@@ -55,13 +57,4 @@ class DatabaseCollection[T: scala.reflect.ClassTag](collectionName: String,
    */
   override def read(): Future[Seq[T]] = collection().find().toFuture()
 
-  /**
-   *
-   * @param identifier Value to search for in database
-   * @param fieldName fieldName to search for in database
-   * @return any status identifier for find by value operation
-   */
-  override def findById(identifier: Any, fieldName: String): Future[Any] = {
-    collection().find(equal(fieldName,identifier)).toFuture()
-  }
 }

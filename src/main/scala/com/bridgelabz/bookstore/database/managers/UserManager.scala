@@ -1,17 +1,20 @@
 package com.bridgelabz.bookstore.database.managers
 
 import java.util.Date
-import com.bridgelabz.bookstore.database.interfaces.ICrud
+
+import com.bridgelabz.bookstore.database.interfaces.{ICrud, IUserManager}
 import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, BadEmailPatternException, PasswordMismatchException, UnverifiedAccountException}
 import com.bridgelabz.bookstore.jwt.TokenManager
 import com.bridgelabz.bookstore.managers.EmailManager
 import com.bridgelabz.bookstore.models.{Address, Otp, User}
 import com.bridgelabz.bookstore.utils.Utilities
 import com.typesafe.scalalogging.Logger
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
+class UserManager(var userDatabase: ICrud[User], var otpDatabase: ICrud[Otp])
+  extends IUserManager {
 
   val logger: Logger = Logger("User-Manager")
 
@@ -36,7 +39,7 @@ class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
    * @param userId to be checked for existence in database
    * @return Future of true if email exists in database else false
    */
-  def doesExist(userId: String): Future[Boolean] =
+  def doesUserExist(userId: String): Future[Boolean] =
     userDatabase.read().map(users => {
       var isExist = false
       for (user <- users) {
@@ -55,7 +58,7 @@ class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
   def register(user: User): Future[Boolean] = {
     if (emailRegex(user.email)) {
 
-      val existsFuture = doesExist(user.userId)
+      val existsFuture = doesUserExist(user.userId)
       existsFuture.map(exists => {
         if (exists) {
           false
@@ -78,20 +81,26 @@ class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
 
   /**
    *
-   * @param otp to be verified
+   * @param token to be verified
    * @return future of true if otp verified else false
    */
-  def verifyOpt(otp: Otp): Future[Boolean] = {
+  def verifyUser(token: Otp): Future[Boolean] = {
+    doesOtpExist(token).map(otpExists => {
+      if (otpExists) {
+        verifyUserEmail(token.email)
+        otpDatabase.delete(token.email, "email")
+        true
+      }
+      else{
+        false
+      }
+    })
+  }
+
+  def doesOtpExist(token: Otp): Future[Boolean] = {
     otpDatabase.read().map(otps => {
-      var isVerified = false
-      otps.foreach(currentOtp =>
-        if (currentOtp.email.equals(otp.email) && currentOtp.data.equals(otp.data)) {
-          isVerified = true
-          verifyUser(otp.email)
-          otpDatabase.delete(otp.email,"email")
-        }
-      )
-      isVerified
+      otps.filter(otp => otp.email.equals(token.email) && otp.data.equals(token.data))
+      otps.nonEmpty
     })
   }
 
@@ -100,9 +109,9 @@ class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
    * @param email of the user to be verified
    * @return future of true if user verified else future fails
    */
-  def verifyUser(email: String): Future[Boolean] = {
-    getUser(email).map(user => {
-      if(user.isDefined){
+  def verifyUserEmail(email: String): Future[Boolean] = {
+    getUserByEmail(email).map(user => {
+      if (user.isDefined) {
         val newUser = User(
           user.get.userId,
           user.get.userName,
@@ -115,7 +124,7 @@ class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
         userDatabase.update(email, newUser, "email")
         true
       }
-      else{
+      else {
         throw new AccountDoesNotExistException
       }
     })
@@ -128,28 +137,26 @@ class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
    * @return future of true if successfully updated else false
    */
   def addAddress(userId: String, address: Address): Future[Boolean] = {
-    userDatabase.read().map(users => {
+    getUserByUserId(userId).map(user => {
       var didUpdate = false
-      for (user <- users) {
-        if (user.userId.equals(userId)) {
-          if (user.verificationComplete) {
-            val newAddresses = user.addresses :+ address
-            val newUser: User = User(
-              userId,
-              user.userName,
-              user.mobileNumber,
-              newAddresses,
-              user.email,
-              user.password,
-              user.verificationComplete
-            )
-            userDatabase.update(userId, newUser, "userId")
-            didUpdate = true
-            logger.info(s"Address updated at ${new Date().getTime}")
-          }
-          else {
-            throw new UnverifiedAccountException
-          }
+      if (user.isDefined) {
+        if (user.get.verificationComplete) {
+          val newAddresses = user.get.addresses :+ address
+          val newUser: User = User(
+            userId,
+            user.get.userName,
+            user.get.mobileNumber,
+            newAddresses,
+            user.get.email,
+            user.get.password,
+            user.get.verificationComplete
+          )
+          userDatabase.update(userId, newUser, "userId")
+          didUpdate = true
+          logger.info(s"Address updated at ${new Date().getTime}")
+        }
+        else {
+          throw new UnverifiedAccountException
         }
       }
 
@@ -168,22 +175,20 @@ class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
    * @return addresses associated with the user
    */
   def getAddresses(userId: String): Future[Seq[Address]] = {
-    userDatabase.read().map(users => {
+    getUserByUserId(userId).map(user => {
+      var doesAccountExist = false
       var addresses: Seq[Address] = Seq()
-      var doesExist = false
-      for (user <- users) {
-        if (user.userId.equals(userId)) {
-          if (user.verificationComplete) {
-            addresses = user.addresses
-            doesExist = true
-            logger.info(s"Address successfully fetched at ${new Date().getTime}")
-          }
-          else {
-            throw new UnverifiedAccountException
-          }
+      if (user.isDefined) {
+        if (user.get.verificationComplete) {
+          addresses = user.get.addresses
+          doesAccountExist = true
+          logger.info(s"Address successfully fetched at ${new Date().getTime}")
+        }
+        else {
+          throw new UnverifiedAccountException
         }
       }
-      if (doesExist) {
+      if (doesAccountExist) {
         addresses
       }
       else {
@@ -197,13 +202,28 @@ class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
    * @param email of the account to be fetched from the database
    * @return a valid user object if account found else None
    */
-  def getUser(email: String): Future[Option[User]] = {
+  def getUserByEmail(email: String): Future[Option[User]] = {
     userDatabase.read().map(users => {
-      var isExist = false
       var searchedUser: Option[User] = None
       for (user <- users) {
         if (email.equals(user.email)) {
-          isExist = true
+          searchedUser = Some(user)
+        }
+      }
+      searchedUser
+    })
+  }
+
+  /**
+   *
+   * @param userId of the account to be fetched from the database
+   * @return a valid user object if account found else None
+   */
+  def getUserByUserId(userId: String): Future[Option[User]] = {
+    userDatabase.read().map(users => {
+      var searchedUser: Option[User] = None
+      for (user <- users) {
+        if (userId.equals(user.userId)) {
           searchedUser = Some(user)
         }
       }
@@ -219,7 +239,7 @@ class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
    */
   def login(email: String, password: String): Future[String] = {
     if (emailRegex(email)) {
-      getUser(email).map(user =>
+      getUserByEmail(email).map(user =>
         if (user.isDefined) {
           if (user.get.password == password) {
             if (user.get.verificationComplete) {
@@ -243,5 +263,4 @@ class UserManager(userDatabase: ICrud[User], otpDatabase: ICrud[Otp]) {
       Future.failed(new BadEmailPatternException)
     }
   }
-
 }

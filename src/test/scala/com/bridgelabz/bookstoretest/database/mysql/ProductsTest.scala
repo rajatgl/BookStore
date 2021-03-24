@@ -1,7 +1,7 @@
 package com.bridgelabz.bookstoretest.database.mysql
 
 import com.bridgelabz.bookstore.database.interfaces.ICrud
-import com.bridgelabz.bookstore.database.mysql.ProductTable
+import com.bridgelabz.bookstore.database.mysql.tables.ProductTable
 import com.bridgelabz.bookstore.models.Product
 import com.bridgelabz.bookstoretest.TestVariables
 import com.dimafeng.testcontainers.{ForAllTestContainer, MySQLContainer}
