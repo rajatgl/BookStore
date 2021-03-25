@@ -5,8 +5,8 @@ import java.util.Date
 import akka.http.javadsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives.{complete, entity, get, headerValueByName, onComplete, parameters, path, post, _}
 import akka.http.scaladsl.server.{Directives, Route}
-import com.bridgelabz.bookstore.database.interfaces.IProductManager
 import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, ProductDoesNotExistException, UnverifiedAccountException}
+import com.bridgelabz.bookstore.interfaces.IProductManager
 import com.bridgelabz.bookstore.jwt.TokenManager
 import com.bridgelabz.bookstore.marshallers.{AddProductJsonSupport, OutputMessageJsonSupport}
 import com.bridgelabz.bookstore.models.{OutputMessage, Product}

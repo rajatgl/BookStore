@@ -1,7 +1,8 @@
 package com.bridgelabz.bookstore.database.managers
 
-import com.bridgelabz.bookstore.database.interfaces.{ICrud, IProductManager}
+import com.bridgelabz.bookstore.database.interfaces.ICrud
 import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, ProductDoesNotExistException, UnverifiedAccountException}
+import com.bridgelabz.bookstore.interfaces.IProductManager
 import com.bridgelabz.bookstore.models.{Product, User}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -12,7 +13,7 @@ import scala.concurrent.Future
  * Class: ProductManager.scala
  * Author: Ruchir Dixit.
  */
-class ProductManager(var productDatabase : ICrud[Product], var userDatabase : ICrud[User])
+class ProductManager(productCollection : ICrud[Product], userCollection : ICrud[User])
   extends IProductManager{
   /**
    *
@@ -25,7 +26,7 @@ class ProductManager(var productDatabase : ICrud[Product], var userDatabase : IC
       if(optionalUser.isDefined){
         val user = optionalUser.get
         if(user.verificationComplete) {
-          productDatabase.create(product)
+          productCollection.create(product)
           true
         }
         else{
@@ -39,7 +40,7 @@ class ProductManager(var productDatabase : ICrud[Product], var userDatabase : IC
   }
 
   def getUserByUserId(userId: String): Future[Option[User]] = {
-    userDatabase.read().map(users => {
+    userCollection.read().map(users => {
       var searchedUser:Option[User] = None
       for (user <- users) {
         if (userId.equals(user.userId)) {
@@ -59,7 +60,7 @@ class ProductManager(var productDatabase : ICrud[Product], var userDatabase : IC
     if(fieldValue.isDefined) {
       var doesExist = false
       var productSeq: Seq[Product] = Seq()
-      productDatabase.read().map(products => {
+      productCollection.read().map(products => {
         products.foreach(product => {
           if (product.author.toLowerCase.contains(fieldValue.get.toLowerCase) || product.title.toLowerCase.contains(fieldValue.get.toLowerCase)) {
             doesExist = true
@@ -75,7 +76,7 @@ class ProductManager(var productDatabase : ICrud[Product], var userDatabase : IC
       })
     }
     else{
-      productDatabase.read()
+      productCollection.read()
     }
 
   }

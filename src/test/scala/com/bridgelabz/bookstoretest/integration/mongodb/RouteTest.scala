@@ -26,17 +26,17 @@ class RouteTest extends AnyWordSpec
 
   var token: String = "invalid_token"
 
-  val userDatabase: ICrud[User] = new DatabaseCollection[User](
+  val userDatabase: DatabaseCollection[User] = new DatabaseCollection[User](
     "userTest",
     CodecRepository.USER
   )
 
-  val otpDatabase: ICrud[Otp] = new DatabaseCollection[Otp](
+  val otpDatabase: DatabaseCollection[Otp] = new DatabaseCollection[Otp](
     "userOtpTest",
     CodecRepository.OTP
   )
 
-  val productDatabase: ICrud[Product] = new DatabaseCollection[Product](
+  val productDatabase: DatabaseCollection[Product] = new DatabaseCollection[Product](
     "productTest",
     CodecRepository.PRODUCT
   )
@@ -199,6 +199,10 @@ class RouteTest extends AnyWordSpec
         }
     }
 
-
+    "utility to delete added users" in {
+      userDatabase.collection().drop()
+      otpDatabase.collection().drop()
+      productDatabase.collection().drop()
+    }
   }
 }

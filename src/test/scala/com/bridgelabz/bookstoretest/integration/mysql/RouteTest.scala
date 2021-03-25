@@ -8,6 +8,7 @@ import akka.util.ByteString
 import com.bridgelabz.bookstore.database.interfaces.ICrud
 import com.bridgelabz.bookstore.database.managers.UserManager
 import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection}
+import com.bridgelabz.bookstore.database.mysql.MySqlUtils
 import com.bridgelabz.bookstore.database.mysql.tables.UserTable
 import com.bridgelabz.bookstore.models.{Otp, User}
 import com.bridgelabz.bookstore.routes.UserRoutes
@@ -23,7 +24,7 @@ import org.scalatestplus.mockito.MockitoSugar
 class RouteTest extends AnyWordSpec
   with ScalatestRouteTest
   with MockitoSugar
-  with ScalaFutures  {
+  with ScalaFutures {
 
   var token: String = "invalid_token"
 
@@ -62,16 +63,16 @@ class RouteTest extends AnyWordSpec
       }
     }
 
-    "Utility test to verify the user" in {
-      userManager.verifyUserEmail(TestVariables.user().email)
-    }
-
     "Route should verify a user account for Get request to /verify" in {
 
       Get(s"/verify?otp=${TestVariables.otp().data}&email=${TestVariables.otp().email}") ~> routes.verifyRoute ~>
         check {
-          assert(status === StatusCodes.BAD_REQUEST)
+          assert(status === StatusCodes.OK)
         }
+    }
+
+    "Utility test to verify the user" in {
+      userManager.verifyUserEmail(TestVariables.user().email)
     }
 
     "Routes should login a test account for a Post request to /login" in {
@@ -130,6 +131,13 @@ class RouteTest extends AnyWordSpec
       postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> routes.addAddressRoute ~> check {
         assert(status === StatusCodes.OK)
       }
+    }
+
+    "utility to delete all added rows" in {
+      val query2 = s"DROP TABLE testaddresses"
+      MySqlUtils.execute(query2)
+      val query = s"DROP TABLE testusers"
+      MySqlUtils.execute(query)
     }
   }
 }

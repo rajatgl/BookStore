@@ -140,7 +140,7 @@ object MySqlUtils {
 
   def fetchAddresses(tableNameForAddress: String, userId: String): Seq[Address] = {
 
-    val query = s"SELECT * FROM $tableNameForAddress WHERE userId = $userId"
+    val query = s"SELECT * FROM $tableNameForAddress WHERE userId = '$userId'"
     var addresses = Seq[Address]()
     val connection = MySqlConfig.getConnection(MySqlConnection())
     try {

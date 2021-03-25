@@ -1,34 +1,35 @@
-package com.bridgelabz.bookstore.database.managers
+package com.bridgelabz.bookstore.database.managers.upgraded
 
 import com.bridgelabz.bookstore.database.interfaces.ICrudRepository
+import com.bridgelabz.bookstore.database.managers.UserManager
 import com.bridgelabz.bookstore.models.{Otp, User}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class UserManager2(userDatabase: ICrudRepository[User], otpDatabase: ICrudRepository[Otp])
-  extends UserManager(userDatabase,otpDatabase) {
+class UserManager2(userCollection: ICrudRepository[User], otpCollection: ICrudRepository[Otp])
+  extends UserManager(userCollection,otpCollection) {
 
   override def doesUserExist(userId: String): Future[Boolean] = {
-    userDatabase.readByValue(userId, "userId").map(seq => {
+    userCollection.read(userId, "userId").map(seq => {
       seq.nonEmpty
     })
   }
 
   override def getUserByEmail(email: String): Future[Option[User]] = {
-    userDatabase.readByValue(email, "email").map(seq => {
+    userCollection.read(email, "email").map(seq => {
       seq.headOption
     })
   }
 
   override def getUserByUserId(userId: String): Future[Option[User]] = {
-    userDatabase.readByValue(userId, "userId").map(seq => {
+    userCollection.read(userId, "userId").map(seq => {
       seq.headOption
     })
   }
 
   override def doesOtpExist(token: Otp): Future[Boolean] = {
-    otpDatabase.readByValue(token.data, "data").map(seq => {
+    otpCollection.read(token.data, "data").map(seq => {
       seq.filter(otp => otp.email.equals(token.email))
       seq.nonEmpty
     })

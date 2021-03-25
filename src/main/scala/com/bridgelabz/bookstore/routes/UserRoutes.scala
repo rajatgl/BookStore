@@ -6,8 +6,8 @@ import akka.http.javadsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Directives.{complete, entity, headerValueByName, onComplete, parameters, path, post, respondWithHeaders}
 import akka.http.scaladsl.server.{Directives, Route}
-import com.bridgelabz.bookstore.database.interfaces.IUserManager
 import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, BadEmailPatternException, PasswordMismatchException, UnverifiedAccountException}
+import com.bridgelabz.bookstore.interfaces.IUserManager
 import com.bridgelabz.bookstore.jwt.TokenManager
 import com.bridgelabz.bookstore.marshallers.{AddAddressJsonSupport, LoginJsonSupport, OutputMessageJsonSupport, RegisterJsonSupport}
 import com.bridgelabz.bookstore.models._

@@ -1,6 +1,6 @@
 package com.bridgelabz.bookstoretest.managers
 
-import com.bridgelabz.bookstore.database.interfaces.{ICrud, ICrudRepository}
+import com.bridgelabz.bookstore.database.interfaces.ICrud
 import com.bridgelabz.bookstore.database.managers.ProductManager
 import com.bridgelabz.bookstore.exceptions.ProductDoesNotExistException
 import org.scalatest.flatspec.AnyFlatSpec
@@ -17,19 +17,22 @@ import org.scalatest.concurrent.ScalaFutures
 import scala.concurrent.{Await, Future}
 
 class ProductManagerTest extends AnyFlatSpec with MockitoSugar {
-  val iCrudProductMock: ICrudRepository[Product] = mock[ICrudRepository[Product]]
-  val iCrudUserMock: ICrudRepository[User] = mock[ICrudRepository[User]]
-  //val productManager: ProductManager = new ProductManager(iCrudProductMock,iCrudUserMock)
+
+  val iCrudProductMock: ICrud[Product] = mock[ICrud[Product]]
+  val iCrudUserMock: ICrud[User] = mock[ICrud[User]]
   val productManager: ProductManager = new ProductManager(iCrudProductMock,iCrudUserMock)
 
   "Add Product" should "return true if product added successfully" in {
     when(iCrudProductMock.create(TestVariables.product())).thenReturn(Future(true))
+    when(iCrudUserMock.read()).thenReturn(Future(Seq(TestVariables.user(verificationComplete = true))))
+
     assert(Await.result(productManager.addProduct(TestVariables.user().userId,TestVariables.product()),1500.seconds))
   }
 
   "Get product" should "return true if product fetched successfully" in {
     when(iCrudProductMock.read()).thenReturn(Future[Seq[Product]](Seq[Product](TestVariables.product())))
-    assert(Await.result(productManager.getProduct(Some(TestVariables.product().author)),1500.seconds) == TestVariables.product())
+    assert(Await.result(productManager.getProduct(Some("Xrnes")),1500.seconds)
+      == Seq(TestVariables.product()))
   }
 
   "Get Product which doesn't exist" should "return Product Not found exception" in {

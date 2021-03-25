@@ -75,7 +75,7 @@ protected class MySqlUserTable(tableName: String) extends ICrud[MySqlUser] {
          | mobileNumber = "${entity.mobileNumber}",
          | email = "${entity.email}",
          | password = "${entity.password}",
-         | verificationComplete = "${entity.verificationComplete}"
+         | verificationComplete = ${entity.verificationComplete}
          | WHERE $fieldName = "$identifier"
          | """.stripMargin
 
