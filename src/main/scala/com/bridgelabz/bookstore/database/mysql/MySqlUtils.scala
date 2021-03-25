@@ -57,12 +57,12 @@ object MySqlUtils {
         val rs: ResultSet  = stmt.executeQuery(query)
         try {
           while (rs.next()) {
-            val product = Product(rs.getString("productId"),
+            val product = Product(rs.getInt("productId"),
               rs.getString("author"),
               rs.getString("title"),
               rs.getString("image"),
-              rs.getString("quantity"),
-              rs.getString("price"),
+              rs.getInt("quantity"),
+              rs.getDouble("price"),
               rs.getString("description"))
             products = products :+ product
           }
