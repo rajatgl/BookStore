@@ -14,7 +14,7 @@ import com.typesafe.scalalogging.Logger
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class UserManager(var userDatabase: ICrud[User], var otpDatabase: ICrud[Otp])
+class UserManager(userCollection: ICrud[User], otpCollection: ICrud[Otp])
   extends IUserManager {
 
   val logger: Logger = Logger("User-Manager")
@@ -33,10 +33,10 @@ class UserManager(var userDatabase: ICrud[User], var otpDatabase: ICrud[Otp])
           false
         }
         else {
-          userDatabase.create(user)
+          userCollection.create(user)
 
           val newOtp = Otp(Utilities.randomNumber(), user.email)
-          otpDatabase.create(newOtp)
+          otpCollection.create(newOtp)
           EmailManager.sendOtp(newOtp)
           logger.info(s"Otp sent as email at ${new Date().getTime}")
           true
@@ -90,7 +90,7 @@ class UserManager(var userDatabase: ICrud[User], var otpDatabase: ICrud[Otp])
     doesOtpExist(token).map(otpExists => {
       if (otpExists) {
         verifyUserEmail(token.email)
-        otpDatabase.delete(token.email, "email")
+        otpCollection.delete(token.email, "email")
         true
       }
       else{
@@ -120,7 +120,7 @@ class UserManager(var userDatabase: ICrud[User], var otpDatabase: ICrud[Otp])
             user.get.password,
             user.get.verificationComplete
           )
-          userDatabase.update(userId, newUser, "userId")
+          userCollection.update(userId, newUser, "userId")
           didUpdate = true
           logger.info(s"Address updated at ${new Date().getTime}")
         }
@@ -188,7 +188,7 @@ class UserManager(var userDatabase: ICrud[User], var otpDatabase: ICrud[Otp])
    * @return Future of true if email exists in database else false
    */
   def doesUserExist(userId: String): Future[Boolean] =
-    userDatabase.read().map(users => {
+    userCollection.read().map(users => {
       var isExist = false
       for (user <- users) {
         if (userId.equals(user.userId)) {
@@ -204,7 +204,7 @@ class UserManager(var userDatabase: ICrud[User], var otpDatabase: ICrud[Otp])
    * @return a valid user object if account found else None
    */
   def getUserByEmail(email: String): Future[Option[User]] = {
-    userDatabase.read().map(users => {
+    userCollection.read().map(users => {
       var searchedUser: Option[User] = None
       for (user <- users) {
         if (email.equals(user.email)) {
@@ -221,7 +221,7 @@ class UserManager(var userDatabase: ICrud[User], var otpDatabase: ICrud[Otp])
    * @return a valid user object if account found else None
    */
   def getUserByUserId(userId: String): Future[Option[User]] = {
-    userDatabase.read().map(users => {
+    userCollection.read().map(users => {
       var searchedUser: Option[User] = None
       for (user <- users) {
         if (userId.equals(user.userId)) {
@@ -238,7 +238,7 @@ class UserManager(var userDatabase: ICrud[User], var otpDatabase: ICrud[Otp])
    * @return true if the token was found in the database, false otherwise
    */
   def doesOtpExist(token: Otp): Future[Boolean] = {
-    otpDatabase.read().map(otps => {
+    otpCollection.read().map(otps => {
       otps.filter(otp => otp.email.equals(token.email) && otp.data.equals(token.data))
       otps.nonEmpty
     })
@@ -261,7 +261,7 @@ class UserManager(var userDatabase: ICrud[User], var otpDatabase: ICrud[Otp])
           user.get.password,
           verificationComplete = true
         )
-        userDatabase.update(email, newUser, "email")
+        userCollection.update(email, newUser, "email")
         true
       }
       else {

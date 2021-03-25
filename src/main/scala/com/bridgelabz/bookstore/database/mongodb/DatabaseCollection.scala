@@ -13,10 +13,10 @@ import scala.concurrent.Future
  * Class: DatabaseConfig.scala
  * Author: Ruchir Dixit
  */
-class DatabaseCollection[T: scala.reflect.ClassTag](var collectionName: String,
-                                                    var codecName: CodecNames,
-                                                    var databaseName: String = sys.env("DATABASE_NAME"),
-                                                    var mongoDbConfig: MongoConfig = new MongoConfig())
+class DatabaseCollection[T: scala.reflect.ClassTag](collectionName: String,
+                                                    codecName: CodecNames,
+                                                    databaseName: String = sys.env("DATABASE_NAME"),
+                                                    mongoDbConfig: MongoConfig = new MongoConfig())
   extends ICrud[T] {
 
   val logger: Logger = Logger("Database-Config")

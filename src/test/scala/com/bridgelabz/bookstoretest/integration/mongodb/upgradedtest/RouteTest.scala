@@ -6,7 +6,8 @@ import akka.http.scaladsl.model.{HttpEntity, HttpMethods, HttpRequest, MediaType
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.util.ByteString
 import com.bridgelabz.bookstore.database.interfaces.{ICrud, ICrudRepository}
-import com.bridgelabz.bookstore.database.managers.{ProductManager, ProductManager2, UserManager, UserManager2}
+import com.bridgelabz.bookstore.database.managers.upgraded.{ProductManager2, UserManager2}
+import com.bridgelabz.bookstore.database.managers.{ProductManager, UserManager}
 import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection, DatabaseCollection2}
 import com.bridgelabz.bookstore.models._
 import com.bridgelabz.bookstore.routes.{ProductRoutes, UserRoutes}

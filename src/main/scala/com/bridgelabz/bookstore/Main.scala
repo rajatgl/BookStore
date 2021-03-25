@@ -6,6 +6,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives.{complete, extractUri, handleExceptions}
 import akka.http.scaladsl.server.{Directives, ExceptionHandler, Route}
 import com.bridgelabz.bookstore.database.interfaces.ICrudRepository
+import com.bridgelabz.bookstore.database.managers.upgraded.{ProductManager2, UserManager2}
 import com.bridgelabz.bookstore.database.managers.{ProductManager, UserManager}
 import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection2}
 import com.bridgelabz.bookstore.database.mysql.tables.upgraded.{ProductTable2, UserTable2}
@@ -62,8 +63,8 @@ object Main extends App with OutputMessageJsonSupport {
 
 
   //All managers
-  val defaultUserManager: IUserManager = new UserManager(userCollection, otpCollection)
-  val defaultProductManager: IProductManager = new ProductManager(productCollection,userCollection)
+  val defaultUserManager: IUserManager = new UserManager2(userCollection, otpCollection)
+  val defaultProductManager: IProductManager = new ProductManager2(productCollection,userCollection)
 
   def route(userManager: IUserManager, productManager: IProductManager): Route = {
 
