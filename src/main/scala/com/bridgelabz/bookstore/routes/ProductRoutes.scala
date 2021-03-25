@@ -26,7 +26,7 @@ class ProductRoutes(productManager: IProductManager)
    * @return : If user authorized and product added returns Ok or else returns UnAuthorized
    */
   def addProductRoute: Route = post {
-    path("product") {
+    path("addProduct") {
       entity(Directives.as[Product]) { request =>
         headerValueByName("Authorization") { token =>
           if (TokenManager.isValidToken(token.split(" ")(1))) {
