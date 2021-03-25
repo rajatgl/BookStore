@@ -3,7 +3,6 @@ package com.bridgelabz.bookstore.database.mysql.tables
 import com.bridgelabz.bookstore.database.interfaces.ICrud
 import com.bridgelabz.bookstore.database.mysql.MySqlUtils
 import com.bridgelabz.bookstore.database.mysql.models.{MySqlAddress, MySqlUser}
-import com.bridgelabz.bookstore.database.mysql.tables.MySqlUserTable
 import com.bridgelabz.bookstore.models.User
 
 import scala.concurrent.ExecutionContext.Implicits.global

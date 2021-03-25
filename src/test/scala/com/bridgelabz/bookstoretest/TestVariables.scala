@@ -34,7 +34,7 @@ object TestVariables {
 
     Otp(data,email)
 
-  def product(productId: Int = 1,
+  def product(productId: Int = 530,
               author: String = "Xrnes",
               title: String = "HiBook",
               image: String = "12323434",

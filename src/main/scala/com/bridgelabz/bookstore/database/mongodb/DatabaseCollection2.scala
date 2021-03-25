@@ -13,6 +13,6 @@ class DatabaseCollection2[T: scala.reflect.ClassTag](collectionName: String,
   extends DatabaseCollection[T](collectionName,codecName,databaseName,mongoDbConfig)
     with ICrudRepository[T]{
 
-  override def readByValue(identifier: Any, fieldName: String): Future[Seq[T]] = collection().find(equal(fieldName,identifier)).toFuture()
+  override def read(identifier: Any, fieldName: String): Future[Seq[T]] = collection().find(equal(fieldName,identifier)).toFuture()
 
 }

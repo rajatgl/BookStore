@@ -8,9 +8,9 @@ trait IUserManager {
 
   def register(user: User): Future[Boolean]
 
-  def verifyUser(token: Otp): Future[Boolean]
-
   def login(email: String, password: String): Future[String]
+
+  def verifyUser(token: Otp): Future[Boolean]
 
   def addAddress(userId: String, address: Address): Future[Boolean]
 

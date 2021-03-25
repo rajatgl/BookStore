@@ -23,18 +23,18 @@ class UsersTest extends AnyFlatSpec with ForAllTestContainer with Matchers {
       TestVariables.user()), 1500.seconds).asInstanceOf[Boolean])
   }
 
-  it should "read the products from the table" in {
+  it should "read the users from the table" in {
     assert(Await.result(userTable.read(), 1500.seconds).length === 1)
   }
 
-  it should "update the product in the table" in {
+  it should "update the user in the table" in {
     assert(Await.result(userTable.update(
       TestVariables.user().userId,TestVariables.user(),"userId"
     ), 1500.seconds).asInstanceOf[Boolean])
   }
 
 
-  it should "delete the product from the table" in {
+  it should "delete the user from the table" in {
     assert(Await.result(userTable.delete(
       TestVariables.user().userName,"userName"
     ), 1500.seconds).asInstanceOf[Boolean])
