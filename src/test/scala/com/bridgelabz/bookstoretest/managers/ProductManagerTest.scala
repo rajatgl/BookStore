@@ -38,7 +38,7 @@ class ProductManagerTest extends AnyFlatSpec with MockitoSugar {
   "Get Product which doesn't exist" should "return Product Not found exception" in {
     val productTest = productManager.getProduct(Some("Any"))
     ScalaFutures.whenReady(productTest.failed){
-      e => e shouldBe a [ProductDoesNotExistException]
+      e => e shouldBe a[ProductDoesNotExistException]
     }
   }
 }

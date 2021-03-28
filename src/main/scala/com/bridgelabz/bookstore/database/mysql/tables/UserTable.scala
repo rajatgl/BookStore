@@ -1,14 +1,18 @@
 package com.bridgelabz.bookstore.database.mysql.tables
 
+import java.sql.{ResultSet, Statement}
+
 import com.bridgelabz.bookstore.database.interfaces.ICrud
-import com.bridgelabz.bookstore.database.mysql.MySqlUtils
+import com.bridgelabz.bookstore.database.mysql.configurations.{MySqlConfig, MySqlConnection, MySqlUtils}
 import com.bridgelabz.bookstore.database.mysql.models.{MySqlAddress, MySqlUser}
-import com.bridgelabz.bookstore.models.User
+import com.bridgelabz.bookstore.models.{Address, User}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class UserTable(tableName: String) extends ICrud[User] {
+class UserTable(tableName: String)
+  extends MySqlUtils[User]
+    with ICrud[User] {
 
   val tableNameForAddress: String = tableName.concat("Addresses")
   val tableNameForUser: String = tableName.concat("Users")
@@ -69,7 +73,7 @@ class UserTable(tableName: String) extends ICrud[User] {
 
       mySqlUsers.foreach(mySqlUser => {
 
-        val addresses = MySqlUtils.fetchAddresses(tableNameForAddress, mySqlUser.userId)
+        val addresses = fetchAddresses(tableNameForAddress, mySqlUser.userId)
 
         users = users :+ User(
           mySqlUser.userId,
@@ -136,11 +140,51 @@ class UserTable(tableName: String) extends ICrud[User] {
 
     val query: String = s"DELETE FROM $tableNameForUser WHERE $fieldName = '$identifier'"
 
-    if (MySqlUtils.executeUpdate(query) > 0) {
+    if (executeUpdate(query) > 0) {
       Future.successful(true)
     }
     else {
       Future.failed(new Exception("Delete-User-Address: FAILED"))
     }
   }
+
+  def fetchAddresses(tableNameForAddress: String, userId: String): Seq[Address] = {
+
+    val query = s"SELECT * FROM $tableNameForAddress WHERE userId = '$userId'"
+    var addresses = Seq[Address]()
+    val connection = MySqlConfig.getConnection(MySqlConnection())
+    try {
+      val stmt: Statement = connection.createStatement
+      try {
+        val rs: ResultSet = stmt.executeQuery(query)
+        try {
+          while (rs.next()) {
+            val address = Address(rs.getInt("apartmentNumber").toString,
+              rs.getString("apartmentName"),
+              rs.getString("streetAddress"),
+              rs.getString("landMark"),
+              rs.getString("state"),
+              rs.getString("pincode"))
+
+            addresses = addresses :+ address
+          }
+        } finally {
+          rs.close()
+        }
+      } finally {
+        stmt.close()
+      }
+    } finally {
+      connection.close()
+    }
+    addresses
+
+  }
+
+  /**
+   *
+   * @param resultSet the result set obtained from the database
+   * @return a sequence collected from the result set
+   */
+  override protected def collectData(resultSet: ResultSet): Seq[User] = Seq()
 }

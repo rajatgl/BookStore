@@ -110,17 +110,17 @@ class UserManager(userCollection: ICrud[User], otpCollection: ICrud[Otp])
       var didUpdate = false
       if (user.isDefined) {
         if (user.get.verificationComplete) {
-          val newAddresses = user.get.addresses :+ address
+
           val newUser: User = User(
             userId,
             user.get.userName,
             user.get.mobileNumber,
-            newAddresses,
+            user.get.addresses :+ address,
             user.get.email,
             user.get.password,
             user.get.verificationComplete
           )
-          userCollection.update(userId, newUser, "userId")
+          updateAddresses(newUser)
           didUpdate = true
           logger.info(s"Address updated at ${new Date().getTime}")
         }
@@ -268,5 +268,13 @@ class UserManager(userCollection: ICrud[User], otpCollection: ICrud[Otp])
         throw new AccountDoesNotExistException
       }
     })
+  }
+
+  /**
+   *
+   * @param user the new entity which will replace the one in database
+   */
+  def updateAddresses(user: User): Unit = {
+    userCollection.update(user.userId, user, "userId")
   }
 }

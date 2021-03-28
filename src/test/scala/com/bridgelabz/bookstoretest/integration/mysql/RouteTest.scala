@@ -8,7 +8,7 @@ import akka.util.ByteString
 import com.bridgelabz.bookstore.database.interfaces.ICrud
 import com.bridgelabz.bookstore.database.managers.UserManager
 import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection}
-import com.bridgelabz.bookstore.database.mysql.MySqlUtils
+import com.bridgelabz.bookstore.database.mysql.configurations.MySqlUtils
 import com.bridgelabz.bookstore.database.mysql.tables.UserTable
 import com.bridgelabz.bookstore.models.{Otp, User}
 import com.bridgelabz.bookstore.routes.UserRoutes
@@ -135,9 +135,9 @@ class RouteTest extends AnyWordSpec
 
     "utility to delete all added rows" in {
       val query2 = s"DROP TABLE testaddresses"
-      MySqlUtils.execute(query2)
+      execute(query2)
       val query = s"DROP TABLE testusers"
-      MySqlUtils.execute(query)
+      execute(query)
     }
   }
 }

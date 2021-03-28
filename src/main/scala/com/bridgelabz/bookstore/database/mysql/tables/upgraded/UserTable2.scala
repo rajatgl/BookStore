@@ -1,7 +1,7 @@
 package com.bridgelabz.bookstore.database.mysql.tables.upgraded
 
 import com.bridgelabz.bookstore.database.interfaces.ICrudRepository
-import com.bridgelabz.bookstore.database.mysql.MySqlUtils
+import com.bridgelabz.bookstore.database.mysql.configurations.MySqlUtils
 import com.bridgelabz.bookstore.database.mysql.tables.{MySqlAddressTable, MySqlUserTable, UserTable}
 import com.bridgelabz.bookstore.models.User
 
@@ -28,7 +28,7 @@ class UserTable2(tableName: String) extends UserTable(tableName) with ICrudRepos
 
       mySqlUsers.foreach(mySqlUser => {
 
-        val addresses = MySqlUtils.fetchAddresses(tableNameForAddress, mySqlUser.userId)
+        val addresses = fetchAddresses(tableNameForAddress, mySqlUser.userId)
 
         users = users :+ User(
           mySqlUser.userId,
@@ -43,5 +43,22 @@ class UserTable2(tableName: String) extends UserTable(tableName) with ICrudRepos
 
       users
     })
+  }
+
+  /**
+   *
+   * @param identifier to identify the item in the database
+   * @param entity     which should replace object.parameter
+   * @param fieldName  that the identifier belongs to
+   * @param parameter  field name that has the value to be updated
+   * @return any status regarding the update operation
+   */
+  override def update[U](identifier: Any, entity: U, fieldName: String, parameter: String): Future[Any] = {
+    if(parameter.toLowerCase.equals("addresses")){
+      mySqlAddressTable.update(identifier, entity, fieldName, parameter)
+    }
+    else{
+      mySqlUserTable.update(identifier, entity, fieldName, parameter)
+    }
   }
 }

@@ -37,11 +37,11 @@ object CodecRepository extends Enumeration {
   )
 
   def getCodecRegistry(codecName: CodecNames): CodecRegistry = {
-
     codecName match{
       case USER => codecRegistryForUser
       case OTP => codecRegistryForOtp
       case PRODUCT => codecRegistryForProduct
     }
   }
+
 }

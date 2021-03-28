@@ -16,4 +16,5 @@ class ProductManager2(productCollection: ICrudRepository[Product], userCollectio
     })
   }
 
+  def helloWorld(): String = "Hello World"
 }
