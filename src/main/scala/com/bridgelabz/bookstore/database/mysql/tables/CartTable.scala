@@ -1,53 +1,73 @@
 package com.bridgelabz.bookstore.database.mysql.tables
 
-import com.bridgelabz.bookstore.database.interfaces.ICrud
-import com.bridgelabz.bookstore.database.mysql.models.MySqlUser
+import java.sql.{ResultSet, Statement}
 
+import com.bridgelabz.bookstore.database.interfaces.ICrud
+import com.bridgelabz.bookstore.database.mysql.configurations.{MySqlConfig, MySqlConnection, MySqlUtils}
+import com.bridgelabz.bookstore.database.mysql.models.{MySqlCart, MySqlCartItem}
+import com.bridgelabz.bookstore.models.{Cart, CartItem}
+
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-protected class CartTable(tableName: String) extends ICrud[MySqlUser] {
+protected class CartTable(tableName: String,productTableName : String)
+  extends MySqlUtils[Cart]
+  with ICrud[Cart] {
 
-  val createUserQuery: String =
-    s"""
-       |CREATE TABLE IF NOT EXISTS $tableName
-       | (cartId VARCHAR(50) NOT NULL,
-       | userId VARCHAR(50),
-       | cartItem VARCHAR(20),
-       | PRIMARY KEY (cartId)
-       | )
-       | """.stripMargin
+  val tableNameForCart: String = tableName.concat("Cart")
+  val tableNameForCartItems: String = tableName.concat("CartItems")
+  val tableNameForUser: String = tableName.concat("Users")
 
-  MySqlUtils.execute(createUserQuery)
+  val mySqlCartTable: MySqlCartTable = new MySqlCartTable(tableNameForCart,tableNameForUser)
+  val mySqlCartItemTable : MySqlCartItemTable = new MySqlCartItemTable(tableNameForCartItems,tableNameForCart,productTableName)
 
   /**
    *
    * @param entity object to be created in the database
    * @return any status identifier for the create operation
    */
-  override def create(entity: MySqlUser): Future[Boolean] = {
-
-    val query: String =
-      s"""
-         |INSERT INTO $tableName
-         |VALUES (
-
-         |)
-         |  """.stripMargin
+  override def create(entity: Cart): Future[Boolean] = {
     try {
-      Future.successful(MySqlUtils.executeUpdate(query) > 0)
+      mySqlCartTable.create(
+        MySqlCart(
+          entity.cartId,
+          entity.userId
+        )
+      )
+      for(item <- entity.items){
+        mySqlCartItemTable.create(
+          MySqlCartItem(
+            entity.cartId,
+            item.productId,
+            item.quantity
+          )
+        )
+      }
+      Future.successful(true)
     }
     catch {
-      case exception: Exception => Future.failed(new Exception("Create-MySqlUser: FAILED"))
+      case _: Exception => Future.failed(new Exception("Create-Cart-Item: FAILED"))
     }
   }
+
 
   /**
    *
    * @return sequence of objects in the database
    */
-  override def read(): Future[Seq[MySqlUser]] = {
-    val query = s"SELECT * FROM $tableName"
-    Future.successful(MySqlUtils.executeMySqlUserQuery(query))
+  override def read(): Future[Seq[Cart]] = {
+    mySqlCartTable.read().map(mySqlCart => {
+      var cart = Seq[Cart]()
+      mySqlCart.foreach(mySqlCartItem => {
+        val items = fetchCartItems(tableNameForCartItems, mySqlCartItem.cartId)
+        cart = cart :+ Cart(
+          mySqlCartItem.cartId,
+          mySqlCartItem.userId,
+          items
+        )
+      })
+      cart
+    })
   }
 
   /**
@@ -57,20 +77,25 @@ protected class CartTable(tableName: String) extends ICrud[MySqlUser] {
    * @param fieldName  name of the parameter in the object defined by the identifier
    * @return any status identifier for the update operation
    */
-  override def update(identifier: Any, entity: MySqlUser, fieldName: String): Future[Boolean] = {
-
-    val query: String =
-      s"""
-         |UPDATE $tableName SET
-
-         | """.stripMargin
-
-    if (MySqlUtils.executeUpdate(query) > 0) {
-      Future.successful(true)
+  override def update(identifier: Any, entity: Cart, fieldName: String): Future[Boolean] = {
+    mySqlCartTable.update(identifier,
+      MySqlCart(
+        entity.cartId,
+        entity.userId
+      ),
+      fieldName
+    )
+    mySqlCartItemTable.delete(entity.cartId,"cartId")
+    for(item <- entity.items){
+      mySqlCartItemTable.create(
+        MySqlCartItem(
+          entity.cartId,
+          item.productId,
+          item.quantity
+        )
+      )
     }
-    else {
-      Future.failed(new Exception("Update-MySqlUser: FAILED"))
-    }
+    Future.successful(true)
   }
 
   /**
@@ -81,17 +106,56 @@ protected class CartTable(tableName: String) extends ICrud[MySqlUser] {
    */
   override def delete(identifier: Any, fieldName: String): Future[Boolean] = {
 
-    val query: String =
-      s"""
-         |DELETE FROM $tableName
-         | WHERE $fieldName = "$identifier"
-         | """.stripMargin
+    val query: String = s"DELETE FROM $tableNameForCart WHERE $fieldName = '$identifier'"
 
-    if (MySqlUtils.executeUpdate(query) > 0) {
+    if (executeUpdate(query) > 0) {
       Future.successful(true)
     }
     else {
-      Future.failed(new Exception("Delete-MySqlUser: FAILED"))
+      Future.failed(new Exception("Delete-Cart-Items: FAILED"))
     }
   }
+
+  /**
+   *
+   * @param tableNameForCartItems : Table from where we have to fetch items
+   * @param cartId : Items for specific cart id
+   * @return : Sequence of CartItems
+   */
+  def fetchCartItems(tableNameForCartItems: String, cartId: String) : Seq[CartItem] = {
+    val query = s"SELECT * FROM $tableNameForCartItems WHERE cartId = '$cartId'"
+    var cartItems = Seq[CartItem]()
+    val connection = MySqlConfig.getConnection(MySqlConnection())
+    try {
+      val stmt: Statement = connection.createStatement
+      try {
+        val rs: ResultSet = stmt.executeQuery(query)
+        try {
+          while (rs.next()) {
+            val item = CartItem(
+              rs.getInt("productId"),
+              rs.getLong("timestamp"),
+              rs.getInt("quantity")
+            )
+
+            cartItems = cartItems :+ item
+          }
+        } finally {
+          rs.close()
+        }
+      } finally {
+        stmt.close()
+      }
+    } finally {
+      connection.close()
+    }
+    cartItems
+  }
+
+  /**
+   *
+   * @param resultSet the result set obtained from the database
+   * @return a sequence collected from the result set
+   */
+  override protected def collectData(resultSet: ResultSet): Seq[Cart] = Seq()
 }

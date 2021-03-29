@@ -4,42 +4,45 @@ import java.sql.ResultSet
 
 import com.bridgelabz.bookstore.database.interfaces.ICrud
 import com.bridgelabz.bookstore.database.mysql.configurations.MySqlUtils
-import com.bridgelabz.bookstore.database.mysql.models.MySqlCart
+import com.bridgelabz.bookstore.database.mysql.models.MySqlCartItem
 
 import scala.concurrent.Future
 
-class MySqlCartTable(tableName : String,tableNameForUser: String) extends
-  MySqlUtils[MySqlCart] with ICrud[MySqlCart]{
-  val createCartQuery: String =
+class MySqlCartItemTable(tableName : String,tableNameForCart: String,tableNameForProduct: String)
+  extends MySqlUtils[MySqlCartItem]
+  with ICrud[MySqlCartItem] {
+  val createCartItemQuery: String =
     s"""
        |CREATE TABLE IF NOT EXISTS $tableName
-       | (cartId VARCHAR(50) NOT NULL,
-       | userId VARCHAR(50),
-       | PRIMARY KEY (cartId),
-       | FOREIGN KEY (userId) REFERENCES $tableNameForUser(userId) ON DELETE CASCADE
+       | (cartId VARCHAR(50),
+       | productId INT,
+       | quantity INT,
+       | FOREIGN KEY (cartId) REFERENCES $tableNameForCart(cartId) ON DELETE CASCADE,
+       | FOREIGN KEY (productId) REFERENCES $tableNameForProduct(productId) ON DELETE CASCADE
        | )
        | """.stripMargin
 
-  execute(createCartQuery)
+  execute(createCartItemQuery)
   /**
    *
    * @param entity object to be created in the database
    * @return any status identifier for the create operation
    */
-  override def create(entity: MySqlCart): Future[Boolean] = {
+  override def create(entity: MySqlCartItem): Future[Boolean] = {
     val query: String =
       s"""
          |INSERT INTO $tableName
          |VALUES (
          |  "${entity.cartId}",
-         |  "${entity.userId}"
+         |  "${entity.productId}",
+         |  "${entity.quantity}"
          |)
          |  """.stripMargin
     try {
       Future.successful(executeUpdate(query) > 0)
     }
     catch {
-      case _: Exception => Future.failed(new Exception("Create-MySqlCart: FAILED"))
+      case _: Exception => Future.failed(new Exception("Create-MySqlCartItem: FAILED"))
     }
   }
 
@@ -47,7 +50,7 @@ class MySqlCartTable(tableName : String,tableNameForUser: String) extends
    *
    * @return sequence of objects in the database
    */
-  override def read(): Future[Seq[MySqlCart]] = {
+  override def read(): Future[Seq[MySqlCartItem]] = {
     val query = s"SELECT * FROM $tableName"
     Future.successful(executeQuery(query))
   }
@@ -59,12 +62,13 @@ class MySqlCartTable(tableName : String,tableNameForUser: String) extends
    * @param fieldName  name of the parameter in the object defined by the identifier
    * @return any status identifier for the update operation
    */
-  override def update(identifier: Any, entity: MySqlCart, fieldName: String): Future[Boolean] = {
+  override def update(identifier: Any, entity: MySqlCartItem, fieldName: String): Future[Boolean] = {
     val query: String =
       s"""
          |UPDATE $tableName SET
          | cartId = "${entity.cartId}",
-         | userId = "${entity.userId}"
+         | productId = "${entity.productId}",
+         | quantity = "${entity.quantity}"
          | WHERE $fieldName = "$identifier"
          | """.stripMargin
 
@@ -102,14 +106,15 @@ class MySqlCartTable(tableName : String,tableNameForUser: String) extends
    * @param resultSet the result set obtained from the database
    * @return a sequence collected from the result set
    */
-  override protected def collectData(resultSet: ResultSet): Seq[MySqlCart] = {
-    var cart = Seq[MySqlCart]()
+  override protected def collectData(resultSet: ResultSet): Seq[MySqlCartItem] = {
+    var cartItems = Seq[MySqlCartItem]()
     while (resultSet.next()) {
-      val cartData = MySqlCart(
+      val cartItem = MySqlCartItem(
         resultSet.getString("cartId"),
-        resultSet.getString("userId"))
-      cart = cart :+ cartData
+        resultSet.getInt("productId"),
+        resultSet.getInt("quantity"))
+      cartItems = cartItems :+ cartItem
     }
-    cart
+    cartItems
   }
 }
