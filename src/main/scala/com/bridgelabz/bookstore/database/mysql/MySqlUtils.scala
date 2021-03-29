@@ -2,7 +2,7 @@ package com.bridgelabz.bookstore.database.mysql
 
 import java.sql.{ResultSet, Statement}
 
-import com.bridgelabz.bookstore.database.mysql.models.{MySqlAddress, MySqlUser}
+import com.bridgelabz.bookstore.database.mysql.models.{MySqlAddress, MySqlCart, MySqlUser}
 import com.bridgelabz.bookstore.models.{Address, Product}
 
 /**
@@ -167,5 +167,30 @@ object MySqlUtils {
       connection.close()
     }
     addresses
+  }
+
+  def executeMySqlCartQuery(query: String): Seq[MySqlCart] = {
+    var userCart = Seq[MySqlCart]()
+    val connection = MySqlConfig.getConnection(MySqlConnection())
+    try {
+      val stmt: Statement = connection.createStatement
+      try {
+        val rs: ResultSet  = stmt.executeQuery(query)
+        try {
+          while (rs.next()) {
+            val cart = MySqlCart(rs.getString("cartId"),
+              rs.getString("userId"))
+            userCart = userCart :+ cart
+          }
+        } finally {
+          rs.close()
+        }
+      } finally {
+        stmt.close()
+      }
+    } finally {
+      connection.close()
+    }
+    userCart
   }
 }
