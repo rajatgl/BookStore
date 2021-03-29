@@ -2,6 +2,7 @@ package com.bridgelabz.bookstore.database.managers.upgraded
 
 import com.bridgelabz.bookstore.database.interfaces.ICrudRepository
 import com.bridgelabz.bookstore.database.managers.UserManager
+import com.bridgelabz.bookstore.exceptions.AccountDoesNotExistException
 import com.bridgelabz.bookstore.models.{Otp, User}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -34,4 +35,27 @@ class UserManager2(userCollection: ICrudRepository[User], otpCollection: ICrudRe
       seq.nonEmpty
     })
   }
+
+  /**
+   *
+   * @param email of the user to be verified
+   * @return future of true if user verified else future fails
+   */
+  override def verifyUserEmail(email: String): Future[Boolean] = {
+    getUserByEmail(email).map(user => {
+      if(user.isDefined) {
+        userCollection.update(user.get.userId, true, "userId", "verificationComplete")
+        true
+      }
+      else{
+        throw new AccountDoesNotExistException
+      }
+    })
+  }
+
+  /**
+   *
+   * @param user the new entity which will update the one in database
+   */
+  override def updateAddresses(user: User): Unit = userCollection.update(user.userId, user.addresses, "userId", "addresses")
 }

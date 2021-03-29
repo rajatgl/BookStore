@@ -1,4 +1,4 @@
-package com.bridgelabz.bookstore.database.mysql
+package com.bridgelabz.bookstore.database.mysql.configurations
 
 case class MySqlConnection(server: String = "localhost", name: String = "root") {
   require(server != null, "DB Server parameter is null")
@@ -8,4 +8,3 @@ case class MySqlConnection(server: String = "localhost", name: String = "root") 
     "jdbc:mysql://%s:3306/bookstore?user=%s".
       format(server, name)
 }
-

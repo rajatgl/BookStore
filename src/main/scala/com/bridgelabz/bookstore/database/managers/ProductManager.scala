@@ -20,7 +20,7 @@ class ProductManager(productCollection : ICrud[Product], userCollection : ICrud[
    * @param product : product to be added in database
    * @return : Future of true if added successfully or else future of false
    */
-  def addProduct(userId: String,product: Product) : Future[Boolean] = {
+  def addProduct(userId: String, product: Product) : Future[Boolean] = {
 
     getUserByUserId(userId).map(optionalUser => {
       if(optionalUser.isDefined){

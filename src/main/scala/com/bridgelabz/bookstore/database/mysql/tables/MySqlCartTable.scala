@@ -1,7 +1,6 @@
 package com.bridgelabz.bookstore.database.mysql.tables
 
 import com.bridgelabz.bookstore.database.interfaces.ICrud
-import com.bridgelabz.bookstore.database.mysql.MySqlUtils
 import com.bridgelabz.bookstore.database.mysql.models.MySqlCart
 
 import scala.concurrent.Future

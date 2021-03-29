@@ -1,12 +1,15 @@
 package com.bridgelabz.bookstore.database.mysql.tables
 
+import java.sql.ResultSet
+
 import com.bridgelabz.bookstore.database.interfaces.ICrud
-import com.bridgelabz.bookstore.database.mysql.MySqlUtils
+import com.bridgelabz.bookstore.database.mysql.configurations.MySqlUtils
 import com.bridgelabz.bookstore.database.mysql.models.MySqlAddress
 
 import scala.concurrent.Future
 
-protected class MySqlAddressTable(tableName: String, tableNameForUser: String) extends ICrud[MySqlAddress] {
+protected class MySqlAddressTable(tableName: String, tableNameForUser: String)
+  extends MySqlUtils[MySqlAddress] with ICrud[MySqlAddress] {
 
   val createAddressQuery: String =
     s"""
@@ -23,7 +26,7 @@ protected class MySqlAddressTable(tableName: String, tableNameForUser: String) e
        | )
        | """.stripMargin
 
-  MySqlUtils.execute(createAddressQuery)
+  execute(createAddressQuery)
 
   /**
    *
@@ -46,7 +49,7 @@ protected class MySqlAddressTable(tableName: String, tableNameForUser: String) e
          |)
          |  """.stripMargin
 
-    if (MySqlUtils.executeUpdate(query) > 1) {
+    if (executeUpdate(query) > 1) {
       Future.successful(true)
     }
     else {
@@ -60,7 +63,7 @@ protected class MySqlAddressTable(tableName: String, tableNameForUser: String) e
    */
   override def read(): Future[Seq[MySqlAddress]] = {
     val query = s"SELECT * FROM $tableName"
-    Future.successful(MySqlUtils.executeMySqlAddressQuery(query))
+    Future.successful(executeQuery(query))
   }
 
   /**
@@ -85,7 +88,7 @@ protected class MySqlAddressTable(tableName: String, tableNameForUser: String) e
          |)
          |  """.stripMargin
 
-    if (MySqlUtils.executeUpdate(query) > 0) {
+    if (executeUpdate(query) > 0) {
       Future.successful(true)
     }
     else {
@@ -106,11 +109,37 @@ protected class MySqlAddressTable(tableName: String, tableNameForUser: String) e
          | WHERE $fieldName = "$identifier"
          | """.stripMargin
 
-    if (MySqlUtils.executeUpdate(query) > 0) {
+    if (executeUpdate(query) > 0) {
       Future.successful(true)
     }
     else {
       Future.failed(new Exception("Delete-MySqlUser: FAILED"))
     }
+  }
+
+  /**
+   *
+   * @param resultSet the result set obtained from the database
+   * @return a sequence collected from the result set
+   */
+  override protected def collectData(resultSet: ResultSet): Seq[MySqlAddress] = {
+
+    var addresses = Seq[MySqlAddress]()
+
+    while (resultSet.next()) {
+
+      val address = MySqlAddress(
+        resultSet.getString("userId"),
+        resultSet.getInt("apartmentNumber").toString,
+        resultSet.getString("apartmentName"),
+        resultSet.getString("streetAddress"),
+        resultSet.getString("landMark"),
+        resultSet.getString("state"),
+        resultSet.getString("pincode"))
+
+      addresses = addresses :+ address
+    }
+
+    addresses
   }
 }

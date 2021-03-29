@@ -1,12 +1,16 @@
 package com.bridgelabz.bookstore.database.mysql.tables
 
+import java.sql.ResultSet
+
 import com.bridgelabz.bookstore.database.interfaces.ICrud
-import com.bridgelabz.bookstore.database.mysql.MySqlUtils
+import com.bridgelabz.bookstore.database.mysql.configurations.MySqlUtils
 import com.bridgelabz.bookstore.database.mysql.models.MySqlUser
 
 import scala.concurrent.Future
 
-protected class MySqlUserTable(tableName: String) extends ICrud[MySqlUser] {
+protected class MySqlUserTable(tableName: String)
+  extends MySqlUtils[MySqlUser]
+  with ICrud[MySqlUser] {
 
   val createUserQuery: String =
     s"""
@@ -21,7 +25,7 @@ protected class MySqlUserTable(tableName: String) extends ICrud[MySqlUser] {
        | )
        | """.stripMargin
 
-  MySqlUtils.execute(createUserQuery)
+  execute(createUserQuery)
 
   /**
    *
@@ -43,7 +47,7 @@ protected class MySqlUserTable(tableName: String) extends ICrud[MySqlUser] {
          |)
          |  """.stripMargin
     try {
-      Future.successful(MySqlUtils.executeUpdate(query) > 0)
+      Future.successful(executeUpdate(query) > 0)
     }
     catch {
       case exception: Exception => Future.failed(new Exception("Create-MySqlUser: FAILED"))
@@ -56,7 +60,7 @@ protected class MySqlUserTable(tableName: String) extends ICrud[MySqlUser] {
    */
   override def read(): Future[Seq[MySqlUser]] = {
     val query = s"SELECT * FROM $tableName"
-    Future.successful(MySqlUtils.executeMySqlUserQuery(query))
+    Future.successful(executeQuery(query))
   }
 
   /**
@@ -79,7 +83,7 @@ protected class MySqlUserTable(tableName: String) extends ICrud[MySqlUser] {
          | WHERE $fieldName = "$identifier"
          | """.stripMargin
 
-    if (MySqlUtils.executeUpdate(query) > 0) {
+    if (executeUpdate(query) > 0) {
       Future.successful(true)
     }
     else {
@@ -101,11 +105,32 @@ protected class MySqlUserTable(tableName: String) extends ICrud[MySqlUser] {
          | WHERE $fieldName = "$identifier"
          | """.stripMargin
 
-    if (MySqlUtils.executeUpdate(query) > 0) {
+    if (executeUpdate(query) > 0) {
       Future.successful(true)
     }
     else {
       Future.failed(new Exception("Delete-MySqlUser: FAILED"))
     }
+  }
+
+  /**
+   *
+   * @param resultSet the result set obtained from the database
+   * @return a sequence collected from the result set
+   */
+  override protected def collectData(resultSet: ResultSet): Seq[MySqlUser] = {
+
+    var users = Seq[MySqlUser]()
+    while (resultSet.next()) {
+      val user = MySqlUser(resultSet.getString("userId"),
+        resultSet.getString("userName"),
+        resultSet.getString("mobileNumber"),
+        resultSet.getString("email"),
+        resultSet.getString("password"),
+        resultSet.getBoolean("verificationComplete"))
+
+      users = users :+ user
+    }
+    users
   }
 }

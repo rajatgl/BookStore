@@ -1,7 +1,9 @@
 package com.bridgelabz.bookstore.database.mysql.tables
 
+import java.sql.ResultSet
+
 import com.bridgelabz.bookstore.database.interfaces.ICrud
-import com.bridgelabz.bookstore.database.mysql.MySqlUtils
+import com.bridgelabz.bookstore.database.mysql.configurations.MySqlUtils
 import com.bridgelabz.bookstore.models.Product
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -11,7 +13,10 @@ import scala.concurrent.Future
  * Class: ProductTable.scala
  * Author: Rajat G.L.
  */
-class ProductTable(tableName: String) extends ICrud[Product]{
+
+class ProductTable(tableName: String)
+  extends MySqlUtils[Product]
+  with ICrud[Product] {
 
   private def createTable() = {
     val createQuery: String =
@@ -28,7 +33,7 @@ class ProductTable(tableName: String) extends ICrud[Product]{
          | )
          | """.stripMargin
 
-    MySqlUtils.execute(createQuery)
+    execute(createQuery)
   }
 
   /**
@@ -50,7 +55,7 @@ class ProductTable(tableName: String) extends ICrud[Product]{
          |  ${entity.price},
          |  "${entity.description}" )""".stripMargin
     try {
-        Future.successful(MySqlUtils.executeUpdate(query) > 0)
+        Future.successful(executeUpdate(query) > 0)
     }
     catch{
       case _: Exception => Future.failed(new Exception("Create-Product: FAILED"))
@@ -63,7 +68,7 @@ class ProductTable(tableName: String) extends ICrud[Product]{
    */
   override def read(): Future[Seq[Product]] = {
     val query = s"SELECT * FROM $tableName"
-    Future(MySqlUtils.executeProductQuery(query))
+    Future(executeQuery(query))
   }
 
   /**
@@ -87,7 +92,7 @@ class ProductTable(tableName: String) extends ICrud[Product]{
          | WHERE $fieldName = "$identifier"
          | """.stripMargin
 
-    if (MySqlUtils.executeUpdate(query) > 0) {
+    if (executeUpdate(query) > 0) {
       Future.successful(true)
     }
     else {
@@ -109,7 +114,7 @@ class ProductTable(tableName: String) extends ICrud[Product]{
          | WHERE $fieldName = "$identifier"
          | """.stripMargin
 
-    if (MySqlUtils.executeUpdate(query) > 0) {
+    if (executeUpdate(query) > 0) {
       Future.successful(true)
     }
     else {
@@ -117,4 +122,29 @@ class ProductTable(tableName: String) extends ICrud[Product]{
     }
   }
 
+<<<<<<< HEAD
+=======
+  /**
+   *
+   * @param resultSet the result set obtained from the database
+   * @return a sequence collected from the result set
+   */
+  override protected def collectData(resultSet: ResultSet): Seq[Product] = {
+    var products: Seq[Product] = Seq()
+
+    while (resultSet.next()) {
+      val product = Product(resultSet.getInt("productId"),
+        resultSet.getString("author"),
+        resultSet.getString("title"),
+        resultSet.getString("image"),
+        resultSet.getInt("quantity"),
+        resultSet.getDouble("price"),
+        resultSet.getString("description"))
+
+      products = products :+ product
+    }
+
+    products
+  }
+>>>>>>> be54c9606fba4aec0c1210169cf1d430808d52ab
 }

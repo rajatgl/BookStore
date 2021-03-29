@@ -5,10 +5,8 @@ import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import akka.http.scaladsl.model.{HttpEntity, HttpMethods, HttpRequest, MediaTypes}
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.util.ByteString
-import com.bridgelabz.bookstore.database.interfaces.{ICrud, ICrudRepository}
 import com.bridgelabz.bookstore.database.managers.upgraded.{ProductManager2, UserManager2}
-import com.bridgelabz.bookstore.database.managers.{ProductManager, UserManager}
-import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection, DatabaseCollection2}
+import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection2}
 import com.bridgelabz.bookstore.models._
 import com.bridgelabz.bookstore.routes.{ProductRoutes, UserRoutes}
 import com.bridgelabz.bookstoretest.TestVariables
@@ -29,18 +27,15 @@ class RouteTest extends AnyWordSpec
 
   val userDatabase: DatabaseCollection2[User] = new DatabaseCollection2[User](
     "userTest",
-    CodecRepository.USER
-  )
+    CodecRepository.USER)
 
   val otpDatabase: DatabaseCollection2[Otp] = new DatabaseCollection2[Otp](
     "userOtpTest",
-    CodecRepository.OTP
-  )
+    CodecRepository.OTP)
 
   val productDatabase: DatabaseCollection2[Product] = new DatabaseCollection2[Product](
     "productTest",
-    CodecRepository.PRODUCT
-  )
+    CodecRepository.PRODUCT)
 
   val userManager: UserManager2 = new UserManager2(userDatabase, otpDatabase)
   val productManager: ProductManager2 = new ProductManager2(productDatabase,userDatabase)

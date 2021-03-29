@@ -1,5 +1,7 @@
 package com.bridgelabz.bookstore
 
+import java.sql.ResultSet
+
 import akka.actor.ActorSystem
 import akka.http.javadsl.model.StatusCodes
 import akka.http.scaladsl.Http
@@ -7,8 +9,8 @@ import akka.http.scaladsl.server.Directives.{complete, extractUri, handleExcepti
 import akka.http.scaladsl.server.{Directives, ExceptionHandler, Route}
 import com.bridgelabz.bookstore.database.interfaces.ICrudRepository
 import com.bridgelabz.bookstore.database.managers.upgraded.{ProductManager2, UserManager2}
-import com.bridgelabz.bookstore.database.managers.{ProductManager, UserManager}
 import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection2}
+import com.bridgelabz.bookstore.database.mysql.configurations.MySqlUtils
 import com.bridgelabz.bookstore.database.mysql.tables.upgraded.{ProductTable2, UserTable2}
 import com.bridgelabz.bookstore.interfaces.{IProductManager, IUserManager}
 import com.bridgelabz.bookstore.marshallers.OutputMessageJsonSupport
@@ -60,7 +62,6 @@ object Main extends App with OutputMessageJsonSupport {
   val otpCollection: ICrudRepository[Otp] = new DatabaseCollection2[Otp]("userOtp",CodecRepository.OTP)
   //val productCollection: ICrudRepository[Product] = new DatabaseCollection2[Product]("products",CodecRepository.PRODUCT)
   val productCollection: ICrudRepository[Product] = new ProductTable2("products")
-
 
   //All managers
   val defaultUserManager: IUserManager = new UserManager2(userCollection, otpCollection)
