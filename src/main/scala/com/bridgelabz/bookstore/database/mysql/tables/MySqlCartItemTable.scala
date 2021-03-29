@@ -34,11 +34,12 @@ class MySqlCartItemTable(tableName : String,tableNameForCart: String,tableNameFo
          |INSERT INTO $tableName
          |VALUES (
          |  "${entity.cartId}",
-         |  "${entity.productId}",
-         |  "${entity.quantity}"
+         |  ${entity.productId},
+         |  ${entity.quantity}
          |)
          |  """.stripMargin
     try {
+      println("Create Item update count"+executeUpdate(query))
       Future.successful(executeUpdate(query) > 0)
     }
     catch {
@@ -67,8 +68,8 @@ class MySqlCartItemTable(tableName : String,tableNameForCart: String,tableNameFo
       s"""
          |UPDATE $tableName SET
          | cartId = "${entity.cartId}",
-         | productId = "${entity.productId}",
-         | quantity = "${entity.quantity}"
+         | productId = ${entity.productId},
+         | quantity = ${entity.quantity}
          | WHERE $fieldName = "$identifier"
          | """.stripMargin
 

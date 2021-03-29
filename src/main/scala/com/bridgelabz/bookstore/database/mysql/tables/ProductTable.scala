@@ -122,8 +122,6 @@ class ProductTable(tableName: String)
     }
   }
 
-<<<<<<< HEAD
-=======
   /**
    *
    * @param resultSet the result set obtained from the database
@@ -146,5 +144,4 @@ class ProductTable(tableName: String)
 
     products
   }
->>>>>>> be54c9606fba4aec0c1210169cf1d430808d52ab
 }

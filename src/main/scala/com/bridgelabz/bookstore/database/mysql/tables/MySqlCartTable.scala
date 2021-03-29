@@ -36,10 +36,12 @@ class MySqlCartTable(tableName : String,tableNameForUser: String) extends
          |)
          |  """.stripMargin
     try {
+      println("Create cart update count"+executeUpdate(query))
       Future.successful(executeUpdate(query) > 0)
     }
     catch {
-      case _: Exception => Future.failed(new Exception("Create-MySqlCart: FAILED"))
+      case _: Exception =>
+        Future.failed(new Exception("Create-MySqlCart: FAILED"))
     }
   }
 

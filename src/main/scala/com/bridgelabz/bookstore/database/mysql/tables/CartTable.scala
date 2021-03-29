@@ -10,15 +10,14 @@ import com.bridgelabz.bookstore.models.{Cart, CartItem}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-protected class CartTable(tableName: String,productTableName : String)
+class CartTable(tableName: String,productTableName : String)
   extends MySqlUtils[Cart]
   with ICrud[Cart] {
 
   val tableNameForCart: String = tableName.concat("Cart")
   val tableNameForCartItems: String = tableName.concat("CartItems")
-  val tableNameForUser: String = tableName.concat("Users")
 
-  val mySqlCartTable: MySqlCartTable = new MySqlCartTable(tableNameForCart,tableNameForUser)
+  val mySqlCartTable: MySqlCartTable = new MySqlCartTable(tableNameForCart,"usersusers")
   val mySqlCartItemTable : MySqlCartItemTable = new MySqlCartItemTable(tableNameForCartItems,tableNameForCart,productTableName)
 
   /**
