@@ -52,7 +52,7 @@ class WishListManager(wishListCollection: ICrudRepository[WishList],
       case Success(_) =>
         getItemsByUserId(userId).map(wishListItems => {
           val seq = wishListItems
-          seq.filter(item => item.product.productId != productId)
+          seq.filter(item => item.productId != productId)
           wishListCollection.update(userId, seq, "userId", "items")
         })
         Try(true)

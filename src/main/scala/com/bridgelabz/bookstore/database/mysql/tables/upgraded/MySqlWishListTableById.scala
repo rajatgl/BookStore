@@ -1,21 +1,21 @@
 package com.bridgelabz.bookstore.database.mysql.tables.upgraded
 
 import com.bridgelabz.bookstore.database.interfaces.ICrudRepository
-import com.bridgelabz.bookstore.database.mysql.models.MySqlCart
-import com.bridgelabz.bookstore.database.mysql.tables.MySqlCartTable
+import com.bridgelabz.bookstore.database.mysql.models.MySqlWishList
+import com.bridgelabz.bookstore.database.mysql.tables.MySqlWishListTable
 
 import scala.concurrent.Future
 
-class MySqlCartTableFilterById(tableName : String,tableNameForUser: String)
-  extends MySqlCartTable(tableName,tableNameForUser)
-  with ICrudRepository[MySqlCart]{
+class MySqlWishListTableById(tableName : String,tableNameForUser: String)
+  extends MySqlWishListTable(tableName,tableNameForUser)
+  with ICrudRepository[MySqlWishList]{
   /**
    *
    * @param identifier to identify the item in the database
    * @param fieldName  that the identifier belongs to
    * @return a sequence of items that have the identifier
    */
-  override def read(identifier: Any, fieldName: String): Future[Seq[MySqlCart]] = {
+  override def read(identifier: Any, fieldName: String): Future[Seq[MySqlWishList]] = {
     val query = s"SELECT * FROM $tableName WHERE $fieldName = '$identifier'"
     Future.successful(executeQuery(query))
   }
@@ -41,7 +41,7 @@ class MySqlCartTableFilterById(tableName : String,tableNameForUser: String)
       Future.successful(true)
     }
     else {
-      Future.failed(new Exception("Update-MySqlCart: FAILED"))
+      Future.failed(new Exception("Update-MySqlWishList: FAILED"))
     }
   }
 }

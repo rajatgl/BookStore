@@ -4,46 +4,45 @@ import java.sql.ResultSet
 
 import com.bridgelabz.bookstore.database.interfaces.ICrud
 import com.bridgelabz.bookstore.database.mysql.configurations.MySqlUtils
-import com.bridgelabz.bookstore.database.mysql.models.MySqlCartItem
+import com.bridgelabz.bookstore.database.mysql.models.MySqlWishListItem
 
 import scala.concurrent.Future
 
-class MySqlCartItemTable(tableName : String,tableNameForCart: String,tableNameForProduct: String)
-  extends MySqlUtils[MySqlCartItem]
-  with ICrud[MySqlCartItem] {
-  val createCartItemQuery: String =
+class MySqlWishListItemTable(tableName : String,tableNameForUser: String,tableNameForProduct: String)
+  extends MySqlUtils[MySqlWishListItem]
+    with ICrud[MySqlWishListItem] {
+  val createWishListItemQuery: String =
     s"""
        |CREATE TABLE IF NOT EXISTS $tableName
-       | (cartId VARCHAR(50),
+       | (userId VARCHAR(50),
        | productId INT,
-       | quantity INT,
-       | FOREIGN KEY (cartId) REFERENCES $tableNameForCart(cartId) ON DELETE CASCADE,
+       | timestamp LONG,
+       | FOREIGN KEY (userId) REFERENCES $tableNameForUser(userId) ON DELETE CASCADE,
        | FOREIGN KEY (productId) REFERENCES $tableNameForProduct(productId) ON DELETE CASCADE
        | )
        | """.stripMargin
 
-  execute(createCartItemQuery)
+  execute(createWishListItemQuery)
   /**
    *
    * @param entity object to be created in the database
    * @return any status identifier for the create operation
    */
-  override def create(entity: MySqlCartItem): Future[Boolean] = {
+  override def create(entity: MySqlWishListItem): Future[Boolean] = {
     val query: String =
       s"""
          |INSERT INTO $tableName
          |VALUES (
-         |  "${entity.cartId}",
+         |  "${entity.userId}",
          |  ${entity.productId},
-         |  ${entity.quantity}
+         |  ${entity.timestamp}
          |)
          |  """.stripMargin
     try {
-      println("Create Item update count"+executeUpdate(query))
       Future.successful(executeUpdate(query) > 0)
     }
     catch {
-      case _: Exception => Future.failed(new Exception("Create-MySqlCartItem: FAILED"))
+      case _: Exception => Future.failed(new Exception("Create-MySqlWishListItem: FAILED"))
     }
   }
 
@@ -51,7 +50,7 @@ class MySqlCartItemTable(tableName : String,tableNameForCart: String,tableNameFo
    *
    * @return sequence of objects in the database
    */
-  override def read(): Future[Seq[MySqlCartItem]] = {
+  override def read(): Future[Seq[MySqlWishListItem]] = {
     val query = s"SELECT * FROM $tableName"
     Future.successful(executeQuery(query))
   }
@@ -63,13 +62,13 @@ class MySqlCartItemTable(tableName : String,tableNameForCart: String,tableNameFo
    * @param fieldName  name of the parameter in the object defined by the identifier
    * @return any status identifier for the update operation
    */
-  override def update(identifier: Any, entity: MySqlCartItem, fieldName: String): Future[Boolean] = {
+  override def update(identifier: Any, entity: MySqlWishListItem, fieldName: String): Future[Boolean] = {
     val query: String =
       s"""
          |UPDATE $tableName SET
-         | cartId = "${entity.cartId}",
+         | cartId = "${entity.userId}",
          | productId = ${entity.productId},
-         | quantity = ${entity.quantity}
+         | timestamp = ${entity.timestamp}
          | WHERE $fieldName = "$identifier"
          | """.stripMargin
 
@@ -77,7 +76,7 @@ class MySqlCartItemTable(tableName : String,tableNameForCart: String,tableNameFo
       Future.successful(true)
     }
     else {
-      Future.failed(new Exception("Update-MySqlCart: FAILED"))
+      Future.failed(new Exception("Update-MySqlWishListItem: FAILED"))
     }
   }
 
@@ -98,7 +97,7 @@ class MySqlCartItemTable(tableName : String,tableNameForCart: String,tableNameFo
       Future.successful(true)
     }
     else {
-      Future.failed(new Exception("Delete-MySqlCartItem: FAILED"))
+      Future.failed(new Exception("Delete-MySqlWishListItem: FAILED"))
     }
   }
 
@@ -107,15 +106,16 @@ class MySqlCartItemTable(tableName : String,tableNameForCart: String,tableNameFo
    * @param resultSet the result set obtained from the database
    * @return a sequence collected from the result set
    */
-  override protected def collectData(resultSet: ResultSet): Seq[MySqlCartItem] = {
-    var cartItems = Seq[MySqlCartItem]()
+  override protected def collectData(resultSet: ResultSet): Seq[MySqlWishListItem] = {
+    var cartItems = Seq[MySqlWishListItem]()
     while (resultSet.next()) {
-      val cartItem = MySqlCartItem(
-        resultSet.getString("cartId"),
+      val cartItem = MySqlWishListItem(
+        resultSet.getString("userId"),
         resultSet.getInt("productId"),
-        resultSet.getInt("quantity"))
+        resultSet.getLong("timestamp"))
       cartItems = cartItems :+ cartItem
     }
     cartItems
   }
 }
+

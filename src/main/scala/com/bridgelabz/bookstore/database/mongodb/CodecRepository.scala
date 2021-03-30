@@ -13,13 +13,15 @@ import org.mongodb.scala.MongoClient.DEFAULT_CODEC_REGISTRY
 object CodecRepository extends Enumeration {
 
   type CodecNames = Value
-  val USER, OTP, PRODUCT, CART = Value
+  val USER, OTP, PRODUCT, CART, WISHLIST = Value
 
 
   private val codecProviderForUser: CodecProvider = Macros.createCodecProvider[User]()
   private val codecProviderForAddress: CodecProvider = Macros.createCodecProvider[Address]()
   private val codecProviderForCart: CodecProvider = Macros.createCodecProvider[Cart]()
   private val codecProviderForCartItems: CodecProvider = Macros.createCodecProvider[CartItem]()
+  private val codecProviderForWishList: CodecProvider = Macros.createCodecProvider[WishList]()
+  private val codecProviderForWishListItems: CodecProvider = Macros.createCodecProvider[WishListItem]()
 
   private val codecRegistryForUser: CodecRegistry = CodecRegistries.fromRegistries(
     CodecRegistries.fromProviders(codecProviderForUser, codecProviderForAddress),
@@ -28,6 +30,10 @@ object CodecRepository extends Enumeration {
 
   private val codecRegistryForCart: CodecRegistry = CodecRegistries.fromRegistries(
     CodecRegistries.fromProviders(codecProviderForCart, codecProviderForCartItems),
+    DEFAULT_CODEC_REGISTRY
+  )
+  private val codecRegistryForWishList: CodecRegistry = CodecRegistries.fromRegistries(
+    CodecRegistries.fromProviders(codecProviderForWishList, codecProviderForWishListItems),
     DEFAULT_CODEC_REGISTRY
   )
   private val codecProviderForOtp: CodecProvider = Macros.createCodecProvider[Otp]()
@@ -48,6 +54,7 @@ object CodecRepository extends Enumeration {
       case OTP => codecRegistryForOtp
       case PRODUCT => codecRegistryForProduct
       case CART => codecRegistryForCart
+      case WISHLIST => codecRegistryForWishList
     }
   }
 

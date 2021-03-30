@@ -76,7 +76,7 @@ class WishListManagerTest extends AnyFlatSpec with MockitoSugar {
       "userId")).thenReturn(Future(Seq()))
 
     val result = wishListManager.removeItem(TestVariables.user().userId,
-      TestVariables.wishList().items.head.product.productId)
+      TestVariables.wishList().items.head.productId)
 
     ScalaFutures.whenReady(result.failed) {
       exception => exception shouldBe a[AccountDoesNotExistException]
@@ -89,7 +89,7 @@ class WishListManagerTest extends AnyFlatSpec with MockitoSugar {
       "userId")).thenReturn(Future(Seq(TestVariables.user())))
 
     val result = wishListManager.removeItem(TestVariables.user().userId,
-      TestVariables.wishList().items.head.product.productId)
+      TestVariables.wishList().items.head.productId)
 
     ScalaFutures.whenReady(result.failed) {
       exception => exception shouldBe a[UnverifiedAccountException]
@@ -105,7 +105,7 @@ class WishListManagerTest extends AnyFlatSpec with MockitoSugar {
       "userId")).thenReturn(Future(Seq()))
 
     val result = wishListManager.removeItem(TestVariables.user().userId,
-      TestVariables.wishList().items.head.product.productId)
+      TestVariables.wishList().items.head.productId)
     assert(Await.result(result, Duration.Inf))
   }
 
@@ -117,7 +117,7 @@ class WishListManagerTest extends AnyFlatSpec with MockitoSugar {
       "userId")).thenReturn(Future(Seq(TestVariables.wishList())))
 
     val result = wishListManager.removeItem(TestVariables.user().userId,
-      TestVariables.wishList().items.head.product.productId)
+      TestVariables.wishList().items.head.productId)
     assert(Await.result(result, Duration.Inf))
   }
 

@@ -95,7 +95,7 @@ class MySqlCartTable(tableName : String,tableNameForUser: String) extends
       Future.successful(true)
     }
     else {
-      Future.failed(new Exception("Delete-MySqlUser: FAILED"))
+      Future.failed(new Exception("Delete-MySqlCart: FAILED"))
     }
   }
 

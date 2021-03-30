@@ -45,8 +45,8 @@ object TestVariables {
     Product(productId,author,title,image,quantity,price,description)
 
 
-  def wishList(userId: String = user().userId,
-               items: Seq[WishListItem] = Seq(WishListItem(product(),
+  def wishList(userId: String = "moc.liamg@69dtrihcur",
+               items: Seq[WishListItem] = Seq(WishListItem(1,
                  1616838811))): WishList =
     WishList(userId, items)
 
@@ -54,5 +54,4 @@ object TestVariables {
            userId : String = "moc.liamg@69dtrihcur",
            items : Seq[CartItem] = Seq(CartItem(1,2))) : Cart =
     Cart(cartId,userId,items)
-
 }
