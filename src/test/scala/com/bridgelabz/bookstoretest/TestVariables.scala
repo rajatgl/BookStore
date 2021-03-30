@@ -51,8 +51,8 @@ object TestVariables {
     WishList(userId, items)
 
   def cart(cartId : String = "1234",
-           userId : String = user().userId,
-           items : Seq[CartItem] = Seq(CartItem(product().productId,200000,2))) : Cart =
+           userId : String = "moc.liamg@69dtrihcur",
+           items : Seq[CartItem] = Seq(CartItem(1,2))) : Cart =
     Cart(cartId,userId,items)
 
 }

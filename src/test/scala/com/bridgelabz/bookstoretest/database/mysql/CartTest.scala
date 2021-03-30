@@ -10,23 +10,23 @@ import concurrent.duration._
 import scala.concurrent.Await
 class CartTest extends AnyFlatSpec with Matchers{
   val cartTable : ICrud[Cart] = new CartTable("cartTest","products")
-  it should "add a single user to the table" in {
+  it should "add details of cart to the table" in {
     assert(Await.result(cartTable.create(
       TestVariables.cart()), 1500.seconds).asInstanceOf[Boolean])
   }
 
-  it should "read the users from the table" in {
+  it should "read the cart details from the table" in {
     assert(Await.result(cartTable.read(), 1500.seconds).length === 1)
   }
 
-  it should "update the user in the table" in {
+  it should "update the cart in the table" in {
     assert(Await.result(cartTable.update(
       TestVariables.cart().cartId,TestVariables.cart(),"cartId"
     ), 1500.seconds).asInstanceOf[Boolean])
   }
 
 
-  it should "delete the user from the table" in {
+  it should "delete the cart from the table" in {
     assert(Await.result(cartTable.delete(
       TestVariables.cart().cartId,"cartId"
     ), 1500.seconds).asInstanceOf[Boolean])
