@@ -133,7 +133,6 @@ class CartTable(tableName: String,productTableName : String)
           while (rs.next()) {
             val item = CartItem(
               rs.getInt("productId"),
-              rs.getLong("timestamp"),
               rs.getInt("quantity")
             )
 

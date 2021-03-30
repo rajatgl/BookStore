@@ -31,21 +31,18 @@ abstract class MySqlUtils[T] {
   }
 
   protected def executeUpdate(query: String): Int = {
-    println("Query:"+query)
     var successful: Int = 0
     val connection = MySqlConfig.getConnection(MySqlConnection())
     try {
       val stmt: Statement = connection.createStatement
       try {
         successful = stmt.executeUpdate(query)
-        println("After succesfull statemt")
       } finally {
         stmt.close()
       }
     } finally {
       connection.close()
     }
-    println("Sucees:"+successful)
     successful
   }
 
