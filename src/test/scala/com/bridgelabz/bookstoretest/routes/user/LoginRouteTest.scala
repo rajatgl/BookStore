@@ -1,4 +1,4 @@
-package com.bridgelabz.bookstoretest.routes
+package com.bridgelabz.bookstoretest.routes.user
 
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Route

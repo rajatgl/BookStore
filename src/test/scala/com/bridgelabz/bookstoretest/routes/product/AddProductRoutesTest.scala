@@ -1,4 +1,4 @@
-package com.bridgelabz.bookstoretest.routes
+package com.bridgelabz.bookstoretest.routes.product
 
 import akka.http.javadsl.model.StatusCodes
 import akka.http.scaladsl.model.{HttpEntity, HttpMethods, HttpRequest, MediaTypes}

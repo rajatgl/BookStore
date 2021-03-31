@@ -45,7 +45,7 @@ object TestVariables {
     Product(productId,author,title,image,quantity,price,description)
 
   def wishList(userId: String = user().userId,
-               items: Seq[WishListItem] = Seq(WishListItem(product(),
+               items: Seq[WishListItem] = Seq(WishListItem(product().productId,
                  1616838811))): WishList =
     WishList(userId, items)
 

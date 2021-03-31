@@ -1,9 +1,9 @@
 package com.bridgelabz.bookstore.database.mysql.tables
 
-import java.sql.{ResultSet, Statement}
+import java.sql.ResultSet
 
 import com.bridgelabz.bookstore.database.interfaces.ICrud
-import com.bridgelabz.bookstore.database.mysql.configurations.{MySqlConfig, MySqlConnection, MySqlUtils}
+import com.bridgelabz.bookstore.database.mysql.configurations.MySqlUtils
 import com.bridgelabz.bookstore.database.mysql.models.{MySqlAddress, MySqlUser}
 import com.bridgelabz.bookstore.models.{Address, User}
 
@@ -67,13 +67,26 @@ class UserTable(tableName: String)
    * @return sequence of objects in the database
    */
   override def read(): Future[Seq[User]] = {
-    mySqlUserTable.read().map(mySqlUsers => {
+
+    val elements = for {
+      users <- mySqlUserTable.read()
+      addresses <- mySqlAddressTable.read()
+    } yield (users, addresses)
+
+    elements.map(tuple => {
 
       var users = Seq[User]()
+      tuple._1.foreach(mySqlUser => {
 
-      mySqlUsers.foreach(mySqlUser => {
-
-        val addresses = fetchAddresses(tableNameForAddress, mySqlUser.userId)
+        val addresses = tuple._2.filter(address => address.userId.equals(mySqlUser.userId)).map(mySqlAddress => {
+          Address(mySqlAddress.apartmentNumber,
+            mySqlAddress.apartmentName,
+            mySqlAddress.streetAddress,
+            mySqlAddress.landMark,
+            mySqlAddress.state,
+            mySqlAddress.pinCode
+          )
+        })
 
         users = users :+ User(
           mySqlUser.userId,
@@ -85,7 +98,6 @@ class UserTable(tableName: String)
           mySqlUser.verificationComplete
         )
       })
-
       users
     })
   }
@@ -146,39 +158,6 @@ class UserTable(tableName: String)
     else {
       Future.failed(new Exception("Delete-User-Address: FAILED"))
     }
-  }
-
-  def fetchAddresses(tableNameForAddress: String, userId: String): Seq[Address] = {
-
-    val query = s"SELECT * FROM $tableNameForAddress WHERE userId = '$userId'"
-    var addresses = Seq[Address]()
-    val connection = MySqlConfig.getConnection(MySqlConnection())
-    try {
-      val stmt: Statement = connection.createStatement
-      try {
-        val rs: ResultSet = stmt.executeQuery(query)
-        try {
-          while (rs.next()) {
-            val address = Address(rs.getInt("apartmentNumber").toString,
-              rs.getString("apartmentName"),
-              rs.getString("streetAddress"),
-              rs.getString("landMark"),
-              rs.getString("state"),
-              rs.getString("pincode"))
-
-            addresses = addresses :+ address
-          }
-        } finally {
-          rs.close()
-        }
-      } finally {
-        stmt.close()
-      }
-    } finally {
-      connection.close()
-    }
-    addresses
-
   }
 
   /**

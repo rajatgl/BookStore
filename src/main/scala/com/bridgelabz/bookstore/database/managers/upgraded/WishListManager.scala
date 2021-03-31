@@ -1,65 +1,97 @@
 package com.bridgelabz.bookstore.database.managers.upgraded
 
 import com.bridgelabz.bookstore.database.interfaces.ICrudRepository
-import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, UnverifiedAccountException}
+import com.bridgelabz.bookstore.exceptions._
 import com.bridgelabz.bookstore.interfaces.IWishListManager
-import com.bridgelabz.bookstore.models.{User, WishList, WishListItem}
+import com.bridgelabz.bookstore.models._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
 class WishListManager(wishListCollection: ICrudRepository[WishList],
-                      userCollection: ICrudRepository[User])
+                      userCollection: ICrudRepository[User],
+                      productCollection: ICrudRepository[Product])
+
   extends IWishListManager {
 
   def addItem(userId: String, item: WishListItem): Future[Boolean] = {
 
-    verifyUserId(userId).transform {
+    val checks = for {
+      user <- verifyUserId(userId)
+      items <- getItemsByUserId(userId)
+      product <- verifyProduct(item.productId)
+    } yield (user, items, product)
 
-      case Success(_) =>
-        val items = getItemsByUserId(userId)
-        items.map(seq => {
-          if (seq.nonEmpty) {
-            wishListCollection.update(userId, seq :+ item, "userId", "items")
+    checks.transform {
+      case Success(value) =>
+        if (value._3.isDefined) {
+          if (value._2.isEmpty) {
+            wishListCollection.create(WishList(userId, Seq(item)))
           }
           else {
-            wishListCollection.create(WishList(userId, seq :+ item))
+            wishListCollection.update(userId, value._2 :+ item, "userId", "items")
           }
-        })
-        Try(true)
+          Try(true)
+        }
+        else {
+          throw new ProductDoesNotExistException
+        }
 
       case Failure(exception) => throw exception
     }
+
   }
 
-  def getItemsByUserId(userId: String): Future[Seq[WishListItem]] = {
+  def getItems(userId: String): Future[Seq[WishListProduct]] = {
+    verifyUserId(userId).flatMap(_ => {
+      val checks = for {
+        wishListItems <- getItemsByUserId(userId)
+        products <- productCollection.read()
+      } yield (wishListItems, products)
 
-    wishListCollection.read(userId, "userId").map(wishLists => {
-      if(wishLists.nonEmpty) {
-        wishLists.head.items
-      }
-      else{
-        Seq()
-      }
+      checks.map(elements => {
+        var items = Seq[WishListProduct]()
+        elements._1.foreach(item => {
+          val product = elements._2.find(product => product.productId.equals(item.productId)).head
+          items = items :+ WishListProduct(product, item.timestamp)
+        })
+        items
+      })
     })
   }
 
   def removeItem(userId: String, productId: Int): Future[Boolean] = {
 
-    verifyUserId(userId).transform {
+    val checks = for {
+      user <- verifyUserId(userId)
+      items <- getItemsByUserId(userId)
+    } yield (user, items)
 
-      case Success(_) =>
-        getItemsByUserId(userId).map(wishListItems => {
-          val seq = wishListItems
-          seq.filter(item => item.product.productId != productId)
-          wishListCollection.update(userId, seq, "userId", "items")
-        })
-        Try(true)
-
+    checks.transform {
+      case Success(elements) =>
+        if (elements._2.nonEmpty) {
+          if (elements._2.exists(item => item.productId == productId)) {
+            if (elements._2.size == 1) {
+              wishListCollection.delete(userId, "userId")
+            }
+            else {
+              val seq = elements._2.filter(item => item.productId != productId)
+              wishListCollection.update(userId, seq, "userId", "items")
+            }
+            Try(true)
+          }
+          else {
+            throw new ProductDoesNotExistException
+          }
+        }
+        else {
+          throw new WishListDoesNotExistException
+        }
       case Failure(exception) => throw exception
     }
   }
+
 
   def getUserByUserId(userId: String): Future[Option[User]] = {
     userCollection.read(userId, "userId").map(seq => {
@@ -74,18 +106,28 @@ class WishListManager(wishListCollection: ICrudRepository[WishList],
         if (optionalUser.get.verificationComplete) {
           optionalUser
         }
-        else{
+        else {
           throw new UnverifiedAccountException
         }
       }
-      else{
+      else {
         throw new AccountDoesNotExistException
       }
     })
   }
 
-  override def getItems(userId: String): Future[Seq[WishListItem]] = {
-    verifyUserId(userId).flatMap(_ => getItemsByUserId(userId))
+  def verifyProduct(productId: Int): Future[Option[Product]] = productCollection.read(productId, "productId").map(seq => seq.headOption)
+
+  def getItemsByUserId(userId: String): Future[Seq[WishListItem]] = {
+
+    wishListCollection.read(userId, "userId").map(wishLists => {
+      if (wishLists.nonEmpty) {
+        wishLists.head.items
+      }
+      else {
+        Seq()
+      }
+    })
   }
 
 }
