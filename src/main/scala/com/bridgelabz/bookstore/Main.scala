@@ -10,11 +10,13 @@ import com.bridgelabz.bookstore.database.managers.upgraded.{ProductManager2, Use
 import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection2}
 import com.bridgelabz.bookstore.database.mysql.configurations.MySqlUtils
 import com.bridgelabz.bookstore.database.mysql.tables.upgraded.{CartTableById, ProductTable2, UserTable2}
+import com.bridgelabz.bookstore.factory.DatabaseFactory
 import com.bridgelabz.bookstore.interfaces.{IProductManager, IUserManager}
 import com.bridgelabz.bookstore.marshallers.OutputMessageJsonSupport
 import com.bridgelabz.bookstore.models.{Cart, CartItem, Otp, OutputMessage, Product, User}
 import com.bridgelabz.bookstore.routes.{ProductRoutes, UserRoutes}
 import com.typesafe.scalalogging.Logger
+
 import concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}
 import scala.util.{Failure, Success}
@@ -54,17 +56,20 @@ object Main extends App with OutputMessageJsonSupport {
       }
   }
 
+
   //All databases
   //val userCollection: ICrudRepository[User] = new DatabaseCollection2[User]("users",CodecRepository.USER)
-  val userCollection: ICrudRepository[User] = new UserTable2("users")
-  val otpCollection: ICrudRepository[Otp] = new DatabaseCollection2[Otp]("userOtp",CodecRepository.OTP)
+  //val userCollection: ICrudRepository[User] = new UserTable2("users")
+  //val otpCollection: ICrudRepository[Otp] = new DatabaseCollection2[Otp]("userOtp",CodecRepository.OTP)
   //val productCollection: ICrudRepository[Product] = new DatabaseCollection2[Product]("products",CodecRepository.PRODUCT)
-  val productCollection: ICrudRepository[Product] = new ProductTable2("products")
-
+  //val productCollection: ICrudRepository[Product] = new ProductTable2("products")
 
   //All managers
-  val defaultUserManager: IUserManager = new UserManager2(userCollection, otpCollection)
-  val defaultProductManager: IProductManager = new ProductManager2(productCollection,userCollection)
+  //val defaultUserManager: IUserManager = new UserManager2(userCollection, otpCollection)
+  //val defaultProductManager: IProductManager = new ProductManager2(productCollection,userCollection)
+
+  val defaultUserManager: IUserManager = DatabaseFactory("MONGODB_USER").asInstanceOf[IUserManager]
+  val defaultProductManager : IProductManager = DatabaseFactory("MONGODB_PRODUCT").asInstanceOf[IProductManager]
 
   def route(userManager: IUserManager, productManager: IProductManager): Route = {
 
