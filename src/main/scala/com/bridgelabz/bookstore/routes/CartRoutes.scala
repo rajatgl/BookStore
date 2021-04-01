@@ -39,20 +39,10 @@ class CartRoutes(cartManager: ICartManager)
                 case Failure(exception) =>
                   logger.error(s"Error occurred at ${new Date().getTime}: Exception reads: ${exception.getMessage}")
                   exception match {
-                    case accountNotFoundEx: AccountDoesNotExistException =>
-                      complete(accountNotFoundEx.status() ->
-                        OutputMessage(accountNotFoundEx.status(), accountNotFoundEx.getMessage))
-                    case unverifiedEx: UnverifiedAccountException =>
-                      complete(unverifiedEx.status() ->
-                        OutputMessage(unverifiedEx.status(), unverifiedEx.getMessage))
-                    case productDoesNotExistEx: ProductDoesNotExistException =>
-                      complete(productDoesNotExistEx.status() ->
-                        OutputMessage(productDoesNotExistEx.status(),
-                          productDoesNotExistEx.getMessage))
-                    case productQuantityUnavailableEx: ProductQuantityUnavailableException =>
-                      complete(productQuantityUnavailableEx.status() ->
-                        OutputMessage(productQuantityUnavailableEx.status(),
-                          productQuantityUnavailableEx.getMessage))
+                    case exception: IBookStoreException =>
+                      complete(exception.status() ->
+                        OutputMessage(exception.status(),
+                          exception.getMessage))
                     case _ =>
                       complete(StatusCodes.InternalServerError.intValue ->
                         OutputMessage(StatusCodes.InternalServerError.intValue,
@@ -87,12 +77,10 @@ class CartRoutes(cartManager: ICartManager)
               case Failure(exception) =>
                 logger.error(s"Error occurred at ${new Date().getTime}: Exception reads: ${exception.getMessage}")
                 exception match {
-                  case accountNotFoundEx: AccountDoesNotExistException =>
-                    complete(accountNotFoundEx.status() ->
-                      OutputMessage(accountNotFoundEx.status(), accountNotFoundEx.getMessage))
-                  case unverifiedEx: UnverifiedAccountException =>
-                    complete(unverifiedEx.status() ->
-                      OutputMessage(unverifiedEx.status(), unverifiedEx.getMessage))
+                  case exception: IBookStoreException =>
+                    complete(exception.status() ->
+                      OutputMessage(exception.status(),
+                        exception.getMessage))
                   case _ =>
                     complete(StatusCodes.InternalServerError.intValue ->
                       OutputMessage(StatusCodes.InternalServerError.intValue,
@@ -128,15 +116,10 @@ class CartRoutes(cartManager: ICartManager)
                 case Failure(exception) =>
                   logger.error(s"Error occurred at ${new Date().getTime}: Exception reads: ${exception.getMessage}")
                   exception match {
-                    case accountNotFoundEx: AccountDoesNotExistException => complete(accountNotFoundEx.status() ->
-                      OutputMessage(accountNotFoundEx.status(), accountNotFoundEx.getMessage))
-                    case unverifiedEx: UnverifiedAccountException => complete(unverifiedEx.status() ->
-                      OutputMessage(unverifiedEx.status(), unverifiedEx.getMessage))
-                    case productDoesNotExistEx: ProductDoesNotExistException => complete(productDoesNotExistEx.status() ->
-                      OutputMessage(productDoesNotExistEx.status(), productDoesNotExistEx.getMessage))
-                    case cartDoesNotExistEx: CartDoesNotExistException =>
-                      complete(cartDoesNotExistEx.status() -> OutputMessage(cartDoesNotExistEx.status(),
-                        cartDoesNotExistEx.getMessage))
+                    case exception: IBookStoreException =>
+                      complete(exception.status() ->
+                        OutputMessage(exception.status(),
+                          exception.getMessage))
                     case _ =>
                       complete(StatusCodes.InternalServerError.intValue -> OutputMessage(StatusCodes.InternalServerError.intValue,
                         "An internal error occurred. Contact the admin."))
@@ -168,12 +151,10 @@ class CartRoutes(cartManager: ICartManager)
               case Failure(exception) =>
                 logger.error(s"Error occurred at ${new Date().getTime}: Exception reads: ${exception.getMessage}")
                 exception match {
-                  case accountNotFoundEx: AccountDoesNotExistException =>
-                    complete(accountNotFoundEx.status() ->
-                      OutputMessage(accountNotFoundEx.status(), accountNotFoundEx.getMessage))
-                  case unverifiedEx: UnverifiedAccountException =>
-                    complete(unverifiedEx.status() ->
-                      OutputMessage(unverifiedEx.status(), unverifiedEx.getMessage))
+                  case exception: IBookStoreException =>
+                    complete(exception.status() ->
+                      OutputMessage(exception.status(),
+                        exception.getMessage))
                   case _ =>
                     complete(StatusCodes.InternalServerError.intValue ->
                       OutputMessage(StatusCodes.InternalServerError.intValue,
