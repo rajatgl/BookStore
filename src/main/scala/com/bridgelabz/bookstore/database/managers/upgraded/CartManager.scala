@@ -13,7 +13,7 @@ class CartManager(cartCollection: ICrudRepository[Cart],
                   userCollection: ICrudRepository[User],
                   productCollection: ICrudRepository[Product]) extends ICartManager {
 
-  val taxPercent: Float = System.getenv("TAX_PERCENT").toFloat
+  val taxPercent: Double = System.getenv("TAX_PERCENT").toDouble
 
   override def addItem(userId: String, item: CartItem): Future[Boolean] = {
     val checks = for {
@@ -50,9 +50,9 @@ class CartManager(cartCollection: ICrudRepository[Cart],
 
     verifyUserId(userId).flatMap(_ => {
       val checks = for {
-        wishListItems <- getItemsByUserId(userId)
+        cartItems <- getItemsByUserId(userId)
         products <- productCollection.read()
-      } yield (wishListItems, products)
+      } yield (cartItems, products)
 
       checks.map(elements => {
         var items = Seq[CartProduct]()
