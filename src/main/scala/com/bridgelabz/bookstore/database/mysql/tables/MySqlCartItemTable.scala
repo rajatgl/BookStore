@@ -8,16 +8,17 @@ import com.bridgelabz.bookstore.database.mysql.models.MySqlCartItem
 
 import scala.concurrent.Future
 
-class MySqlCartItemTable(tableName : String,tableNameForCart: String,tableNameForProduct: String)
+class MySqlCartItemTable(tableName : String,tableNameForUser: String,tableNameForProduct: String)
   extends MySqlUtils[MySqlCartItem]
   with ICrud[MySqlCartItem] {
   val createCartItemQuery: String =
     s"""
        |CREATE TABLE IF NOT EXISTS $tableName
-       | (cartId VARCHAR(50),
+       | (userId VARCHAR(50),
        | productId INT,
+       | timestamp LONG,
        | quantity INT,
-       | FOREIGN KEY (cartId) REFERENCES $tableNameForCart(cartId) ON DELETE CASCADE,
+       | FOREIGN KEY (userId) REFERENCES $tableNameForUser(userId) ON DELETE CASCADE,
        | FOREIGN KEY (productId) REFERENCES $tableNameForProduct(productId) ON DELETE CASCADE
        | )
        | """.stripMargin
@@ -33,8 +34,9 @@ class MySqlCartItemTable(tableName : String,tableNameForCart: String,tableNameFo
       s"""
          |INSERT INTO $tableName
          |VALUES (
-         |  "${entity.cartId}",
+         |  "${entity.userId}",
          |  ${entity.productId},
+         |  ${entity.timestamp},
          |  ${entity.quantity}
          |)
          |  """.stripMargin
@@ -67,8 +69,9 @@ class MySqlCartItemTable(tableName : String,tableNameForCart: String,tableNameFo
     val query: String =
       s"""
          |UPDATE $tableName SET
-         | cartId = "${entity.cartId}",
+         | cartId = "${entity.userId}",
          | productId = ${entity.productId},
+         | timestamp = ${entity.timestamp}
          | quantity = ${entity.quantity}
          | WHERE $fieldName = "$identifier"
          | """.stripMargin
@@ -111,7 +114,8 @@ class MySqlCartItemTable(tableName : String,tableNameForCart: String,tableNameFo
     var cartItems = Seq[MySqlCartItem]()
     while (resultSet.next()) {
       val cartItem = MySqlCartItem(
-        resultSet.getString("cartId"),
+        resultSet.getString("userId"),
+        resultSet.getLong("timestamp"),
         resultSet.getInt("productId"),
         resultSet.getInt("quantity"))
       cartItems = cartItems :+ cartItem

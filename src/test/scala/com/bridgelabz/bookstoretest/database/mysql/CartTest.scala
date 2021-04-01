@@ -16,19 +16,19 @@ class CartTest extends AnyFlatSpec with Matchers{
   }
 
   it should "read the cart details from the table" in {
-    assert(Await.result(cartTable.read(), 1500.seconds).length === 1)
+    assert(Await.result(cartTable.read(), 1500.seconds).length === 2)
   }
 
   it should "update the cart in the table" in {
     assert(Await.result(cartTable.update(
-      TestVariables.cart().cartId,TestVariables.cart(),"cartId"
+      TestVariables.cart().userId,TestVariables.cart(),"userId"
     ), 1500.seconds).asInstanceOf[Boolean])
   }
 
 
   it should "delete the cart from the table" in {
     assert(Await.result(cartTable.delete(
-      TestVariables.cart().cartId,"cartId"
+      TestVariables.cart().userId,"userId"
     ), 1500.seconds).asInstanceOf[Boolean])
   }
 }

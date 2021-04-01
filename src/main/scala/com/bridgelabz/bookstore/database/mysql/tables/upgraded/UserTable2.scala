@@ -3,7 +3,7 @@ package com.bridgelabz.bookstore.database.mysql.tables.upgraded
 import com.bridgelabz.bookstore.database.interfaces.ICrudRepository
 import com.bridgelabz.bookstore.database.mysql.configurations.MySqlUtils
 import com.bridgelabz.bookstore.database.mysql.tables.{MySqlAddressTable, MySqlUserTable, UserTable}
-import com.bridgelabz.bookstore.models.User
+import com.bridgelabz.bookstore.models.{Address, User}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -28,7 +28,15 @@ class UserTable2(tableName: String) extends UserTable(tableName) with ICrudRepos
 
       mySqlUsers.foreach(mySqlUser => {
 
-        val addresses = fetchAddresses(tableNameForAddress, mySqlUser.userId)
+        val addresses = mySqlAddressTable.fetch(mySqlUser.userId, "userId").map(mySqlAddress => {
+          Address(mySqlAddress.apartmentNumber,
+            mySqlAddress.apartmentName,
+            mySqlAddress.streetAddress,
+            mySqlAddress.landMark,
+            mySqlAddress.state,
+            mySqlAddress.pinCode
+          )
+        })
 
         users = users :+ User(
           mySqlUser.userId,

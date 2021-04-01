@@ -8,11 +8,16 @@ import com.bridgelabz.bookstore.models.{Otp, Product, User}
 
 object DatabaseFactory{
   val otpCollection: ICrudRepository[Otp] = new DatabaseCollection2[Otp]("userOtp",CodecRepository.OTP)
+  // Use enums instead of string so incorrect spellings can also be handled from main
   def apply(databaseName : String) = {
     databaseName.toUpperCase() match {
-      case "MONGODB_USER" =>    val userCollection: ICrudRepository[User] = getUserDatabase("mongodb")
+      case "MONGODB_USER" =>
+                                val userCollection: ICrudRepository[User] = getUserDatabase("mongodb")
                                 new UserManager2(userCollection, otpCollection)
       case "MONGODB_PRODUCT" => val userCollection: ICrudRepository[User] = getUserDatabase("mongodb")
+                                val productCollection: ICrudRepository[Product] = getProductDatabase("mongodb")
+                                new ProductManager2(productCollection,userCollection)
+      case "MONGODB_WISHLIST" => val userCollection: ICrudRepository[User] = getUserDatabase("mongodb")
                                 val productCollection: ICrudRepository[Product] = getProductDatabase("mongodb")
                                 new ProductManager2(productCollection,userCollection)
       case "MYSQL_USER" =>      val userCollection: ICrudRepository[User] = getUserDatabase("mysql")

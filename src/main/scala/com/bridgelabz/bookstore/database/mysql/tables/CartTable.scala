@@ -18,7 +18,7 @@ class CartTable(tableName: String,productTableName : String)
   val tableNameForCartItems: String = tableName.concat("CartItems")
 
   val mySqlCartTable: MySqlCartTable = new MySqlCartTable(tableNameForCart,"usersusers")
-  val mySqlCartItemTable : MySqlCartItemTable = new MySqlCartItemTable(tableNameForCartItems,tableNameForCart,productTableName)
+  val mySqlCartItemTable : MySqlCartItemTable = new MySqlCartItemTable(tableNameForCartItems,"usersusers",productTableName)
 
   /**
    *
@@ -29,14 +29,14 @@ class CartTable(tableName: String,productTableName : String)
     try {
       mySqlCartTable.create(
         MySqlCart(
-          entity.cartId,
           entity.userId
         )
       )
       for(item <- entity.items){
         mySqlCartItemTable.create(
           MySqlCartItem(
-            entity.cartId,
+            entity.userId,
+            item.timestamp,
             item.productId,
             item.quantity
           )
@@ -58,9 +58,8 @@ class CartTable(tableName: String,productTableName : String)
     mySqlCartTable.read().map(mySqlCart => {
       var cart = Seq[Cart]()
       mySqlCart.foreach(mySqlCartItem => {
-        val items = fetchCartItems(tableNameForCartItems, mySqlCartItem.cartId)
+        val items = fetchCartItems(tableNameForCartItems, mySqlCartItem.userId)
         cart = cart :+ Cart(
-          mySqlCartItem.cartId,
           mySqlCartItem.userId,
           items
         )
@@ -79,16 +78,16 @@ class CartTable(tableName: String,productTableName : String)
   override def update(identifier: Any, entity: Cart, fieldName: String): Future[Boolean] = {
     mySqlCartTable.update(identifier,
       MySqlCart(
-        entity.cartId,
         entity.userId
       ),
       fieldName
     )
-    mySqlCartItemTable.delete(entity.cartId,"cartId")
+    mySqlCartItemTable.delete(entity.userId,"userId")
     for(item <- entity.items){
       mySqlCartItemTable.create(
         MySqlCartItem(
-          entity.cartId,
+          entity.userId,
+          item.timestamp,
           item.productId,
           item.quantity
         )
@@ -118,11 +117,11 @@ class CartTable(tableName: String,productTableName : String)
   /**
    *
    * @param tableNameForCartItems : Table from where we have to fetch items
-   * @param cartId : Items for specific cart id
+   * @param userId : Items for specific user id
    * @return : Sequence of CartItems
    */
-  def fetchCartItems(tableNameForCartItems: String, cartId: String) : Seq[CartItem] = {
-    val query = s"SELECT * FROM $tableNameForCartItems WHERE cartId = '$cartId'"
+  def fetchCartItems(tableNameForCartItems: String, userId: String) : Seq[CartItem] = {
+    val query = s"SELECT * FROM $tableNameForCartItems WHERE userId = '$userId'"
     var cartItems = Seq[CartItem]()
     val connection = MySqlConfig.getConnection(MySqlConnection())
     try {
@@ -133,6 +132,7 @@ class CartTable(tableName: String,productTableName : String)
           while (rs.next()) {
             val item = CartItem(
               rs.getInt("productId"),
+              rs.getLong("timestamp"),
               rs.getInt("quantity")
             )
 

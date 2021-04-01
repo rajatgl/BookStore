@@ -13,9 +13,7 @@ class MySqlCartTable(tableName : String,tableNameForUser: String) extends
   val createCartQuery: String =
     s"""
        |CREATE TABLE IF NOT EXISTS $tableName
-       | (cartId VARCHAR(50) NOT NULL,
-       | userId VARCHAR(50),
-       | PRIMARY KEY (cartId),
+       | (userId VARCHAR(50),
        | FOREIGN KEY (userId) REFERENCES $tableNameForUser(userId) ON DELETE CASCADE
        | )
        | """.stripMargin
@@ -31,7 +29,6 @@ class MySqlCartTable(tableName : String,tableNameForUser: String) extends
       s"""
          |INSERT INTO $tableName
          |VALUES (
-         |  "${entity.cartId}",
          |  "${entity.userId}"
          |)
          |  """.stripMargin
@@ -65,7 +62,6 @@ class MySqlCartTable(tableName : String,tableNameForUser: String) extends
     val query: String =
       s"""
          |UPDATE $tableName SET
-         | cartId = "${entity.cartId}",
          | userId = "${entity.userId}"
          | WHERE $fieldName = "$identifier"
          | """.stripMargin
@@ -108,7 +104,6 @@ class MySqlCartTable(tableName : String,tableNameForUser: String) extends
     var cart = Seq[MySqlCart]()
     while (resultSet.next()) {
       val cartData = MySqlCart(
-        resultSet.getString("cartId"),
         resultSet.getString("userId"))
       cart = cart :+ cartData
     }

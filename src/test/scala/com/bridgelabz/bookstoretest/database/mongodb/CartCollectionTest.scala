@@ -20,11 +20,11 @@ class CartCollectionTest extends AnyFlatSpec {
   }
   "When updated cart" should "return Future of Updated " in {
     val cart = TestVariables.cart()
-    val updateTest = Await.result(cartCollection.update(TestVariables.cart().cartId, cart, "cartId"), 1500.seconds)
+    val updateTest = Await.result(cartCollection.update(TestVariables.cart().userId, cart, "userId"), 1500.seconds)
     assert(updateTest.toString === "AcknowledgedUpdateResult{matchedCount=1, modifiedCount=1, upsertedId=null}")
   }
   "When deleted cart" should "return Future of Deleted " in {
-    val deleteTest = Await.result(cartCollection.delete(TestVariables.cart().cartId, "cartId"), 1500.seconds)
+    val deleteTest = Await.result(cartCollection.delete(TestVariables.cart().userId, "userId"), 1500.seconds)
     assert(deleteTest.toString === "AcknowledgedDeleteResult{deletedCount=1}")
   }
 }
