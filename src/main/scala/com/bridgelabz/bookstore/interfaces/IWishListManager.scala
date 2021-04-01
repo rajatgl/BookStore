@@ -12,4 +12,5 @@ trait IWishListManager {
 
   def removeItem(userId: String, productId: Int): Future[Boolean]
 
+  def addItemToCart(userId: String, productId: Int, quantity: Int): Future[Boolean]
 }

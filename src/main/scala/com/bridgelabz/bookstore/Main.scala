@@ -14,7 +14,7 @@ import com.bridgelabz.bookstore.database.mysql.configurations.MySqlUtils
 import com.bridgelabz.bookstore.database.mysql.tables.upgraded.{ProductTable2, UserTable2}
 import com.bridgelabz.bookstore.interfaces.{IProductManager, IUserManager, IWishListManager}
 import com.bridgelabz.bookstore.marshallers.OutputMessageJsonSupport
-import com.bridgelabz.bookstore.models.{Otp, OutputMessage, Product, User, WishList}
+import com.bridgelabz.bookstore.models.{Cart, Otp, OutputMessage, Product, User, WishList}
 import com.bridgelabz.bookstore.routes.{ProductRoutes, UserRoutes, WishListRoutes}
 import com.typesafe.scalalogging.Logger
 
@@ -63,11 +63,12 @@ object Main extends App with OutputMessageJsonSupport {
   //val productCollection: ICrudRepository[Product] = new DatabaseCollection2[Product]("products",CodecRepository.PRODUCT)
   val productCollection: ICrudRepository[Product] = new ProductTable2("products")
   val wishListCollection: ICrudRepository[WishList] = ???
+  val cartCollection: ICrudRepository[Cart] = ???
 
   //All managers
   val defaultUserManager: IUserManager = new UserManager2(userCollection, otpCollection)
   val defaultProductManager: IProductManager = new ProductManager2(productCollection, userCollection)
-  val defaultWishListManager: IWishListManager = new WishListManager(wishListCollection, userCollection, productCollection)
+  val defaultWishListManager: IWishListManager = new WishListManager(wishListCollection, userCollection, productCollection, cartCollection)
 
   def route(userManager: IUserManager, productManager: IProductManager, wishListManager: IWishListManager): Route = {
 

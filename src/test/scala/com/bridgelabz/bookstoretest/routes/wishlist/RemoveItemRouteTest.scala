@@ -7,7 +7,7 @@ import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.util.ByteString
 import com.bridgelabz.bookstore.database.managers.upgraded.WishListManager
-import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, ProductDoesNotExistException, UnverifiedAccountException, WishListDoesNotExistException}
+import com.bridgelabz.bookstore.exceptions._
 import com.bridgelabz.bookstore.jwt.TokenManager
 import com.bridgelabz.bookstore.routes.WishListRoutes
 import com.bridgelabz.bookstoretest.TestVariables

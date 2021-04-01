@@ -1,6 +1,6 @@
 package com.bridgelabz.bookstoretest
 
-import com.bridgelabz.bookstore.models.{Address, Otp, Product, User, WishList, WishListItem}
+import com.bridgelabz.bookstore.models.{Address, Cart, CartItem, Otp, Product, User, WishList, WishListItem}
 
 /**
  * Created on 3/5/2021.
@@ -48,5 +48,10 @@ object TestVariables {
                items: Seq[WishListItem] = Seq(WishListItem(product().productId,
                  1616838811))): WishList =
     WishList(userId, items)
+
+  def cart(userId: String = user().userId,
+           items: Seq[CartItem] = Seq(CartItem(product().productId,
+             1616838811,1))): Cart =
+    Cart(userId,items)
 
 }

@@ -3,7 +3,7 @@ package com.bridgelabz.bookstoretest.managers
 import com.bridgelabz.bookstore.database.interfaces.ICrudRepository
 import com.bridgelabz.bookstore.database.managers.upgraded.WishListManager
 import com.bridgelabz.bookstore.exceptions._
-import com.bridgelabz.bookstore.models.{Product, User, WishList, WishListItem}
+import com.bridgelabz.bookstore.models.{Cart, Product, User, WishList}
 import com.bridgelabz.bookstoretest.TestVariables
 import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures
@@ -20,8 +20,9 @@ class WishListManagerTest extends AnyFlatSpec with MockitoSugar {
   val userCollectionMock: ICrudRepository[User] = mock[ICrudRepository[User]]
   val wishListCollectionMock: ICrudRepository[WishList] = mock[ICrudRepository[WishList]]
   val productCollectionMock: ICrudRepository[Product] = mock[ICrudRepository[Product]]
+  val cartCollectionMock: ICrudRepository[Cart] = mock[ICrudRepository[Cart]]
 
-  val wishListManager: WishListManager = new WishListManager(wishListCollectionMock, userCollectionMock, productCollectionMock)
+  val wishListManager: WishListManager = new WishListManager(wishListCollectionMock, userCollectionMock, productCollectionMock, cartCollectionMock)
 
   "Add item" should "return failed future with AccountDoesNotExistException" in {
     when(userCollectionMock.read(TestVariables.user().userId,
@@ -214,4 +215,109 @@ class WishListManagerTest extends AnyFlatSpec with MockitoSugar {
     assert(Await.result(result, Duration.Inf).nonEmpty)
   }
 
+  "Add to cart" should "return failed future with AccountDoesNotExistException" in {
+    when(userCollectionMock.read(TestVariables.user().userId,
+      "userId")).thenReturn(Future(Seq()))
+
+    val result = wishListManager.addItemToCart(TestVariables.user().userId,TestVariables.product().productId,1)
+
+    ScalaFutures.whenReady(result.failed){
+      exception => exception shouldBe a[AccountDoesNotExistException]
+    }
+  }
+
+  "Add to cart" should "return failed future with UnverifiedAccountException" in {
+    when(userCollectionMock.read(TestVariables.user().userId,
+      "userId")).thenReturn(Future(Seq(TestVariables.user())))
+
+    val result = wishListManager.addItemToCart(TestVariables.user().userId,TestVariables.product().productId,1)
+
+    ScalaFutures.whenReady(result.failed){
+      exception => exception shouldBe a[UnverifiedAccountException]
+    }
+  }
+
+
+  "Add to cart" should "return failed future with WishListDoesNotExistException" in {
+    when(userCollectionMock.read(TestVariables.user().userId,
+      "userId")).thenReturn(Future(Seq(TestVariables.user(verificationComplete = true))))
+
+    when(productCollectionMock.read(TestVariables.product().productId,
+      "productId")).thenReturn(Future(Seq(TestVariables.product())))
+
+    when(wishListCollectionMock.read(TestVariables.user().userId,
+      "userId")).thenReturn(Future(Seq()))
+
+    when(cartCollectionMock.read(TestVariables.user().userId,
+      "userId")).thenReturn(Future(Seq()))
+
+    val result = wishListManager.addItemToCart(TestVariables.user().userId,TestVariables.product().productId,1)
+
+    ScalaFutures.whenReady(result.failed){
+      exception => exception shouldBe a[WishListDoesNotExistException]
+    }
+  }
+
+  "Add to cart" should "return failed future with ProductDoesNotExistException" in {
+    when(userCollectionMock.read(TestVariables.user().userId,
+      "userId")).thenReturn(Future(Seq(TestVariables.user(verificationComplete = true))))
+
+    when(productCollectionMock.read(2,
+      "productId")).thenReturn(Future(Seq()))
+
+    when(wishListCollectionMock.read(TestVariables.user().userId,
+      "userId")).thenReturn(Future(Seq(TestVariables.wishList())))
+
+    when(cartCollectionMock.read(TestVariables.user().userId,
+      "userId")).thenReturn(Future(Seq()))
+
+    val result = wishListManager.addItemToCart(TestVariables.user().userId,
+      2,1)
+
+    ScalaFutures.whenReady(result.failed){
+      exception => exception shouldBe a[ProductDoesNotExistException]
+    }
+  }
+
+  "Add to cart" should "return failed future with ProductQuantityUnavailableException" in {
+    when(userCollectionMock.read(TestVariables.user().userId,
+      "userId")).thenReturn(Future(Seq(TestVariables.user(verificationComplete = true))))
+
+    when(productCollectionMock.read(TestVariables.product().productId,
+      "productId")).thenReturn(Future(Seq()))
+
+    when(wishListCollectionMock.read(TestVariables.user().userId,
+      "userId")).thenReturn(Future(Seq(TestVariables.wishList())))
+
+    when(cartCollectionMock.read(TestVariables.user().userId,
+      "userId")).thenReturn(Future(Seq()))
+
+    val result = wishListManager.addItemToCart(TestVariables.user().userId,
+      TestVariables.product().productId,1)
+
+    ScalaFutures.whenReady(result.failed){
+      exception => exception shouldBe a[ProductQuantityUnavailableException]
+    }
+  }
+
+  "Add to cart" should "return future of true if wishlist-item is added to the cart" in {
+    when(userCollectionMock.read(TestVariables.user().userId,
+      "userId")).thenReturn(Future(Seq(TestVariables.user(verificationComplete = true))))
+
+    when(productCollectionMock.read(TestVariables.product().productId,
+      "productId")).thenReturn(Future(Seq(TestVariables.product())))
+
+    when(wishListCollectionMock.read(TestVariables.user().userId,
+      "userId")).thenReturn(Future(Seq(TestVariables.wishList())))
+
+    when(cartCollectionMock.read(TestVariables.user().userId,
+      "userId")).thenReturn(Future(Seq()))
+
+    when(cartCollectionMock.create(TestVariables.cart())).thenReturn(Future(true))
+
+    val result = wishListManager.addItemToCart(TestVariables.user().userId,
+      TestVariables.product().productId,1)
+
+    assert(Await.result(result, Duration.Inf))
+  }
 }

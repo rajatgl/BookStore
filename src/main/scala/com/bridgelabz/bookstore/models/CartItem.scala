@@ -1,3 +1,3 @@
 package com.bridgelabz.bookstore.models
 
-case class CartItem(product: Product, timestamp: Long, quantity: Int)
+case class CartItem(productId: Int, timestamp: Long, quantity: Int)

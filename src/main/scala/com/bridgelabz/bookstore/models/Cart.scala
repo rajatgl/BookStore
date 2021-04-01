@@ -1,3 +1,3 @@
 package com.bridgelabz.bookstore.models
 
-case class Cart(cartId: String, userId: String, items: Seq[CartItem])
+case class Cart(userId: String, items: Seq[CartItem])

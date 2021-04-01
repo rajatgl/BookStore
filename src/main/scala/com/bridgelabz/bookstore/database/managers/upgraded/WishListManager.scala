@@ -1,5 +1,7 @@
 package com.bridgelabz.bookstore.database.managers.upgraded
 
+import java.util.Date
+
 import com.bridgelabz.bookstore.database.interfaces.ICrudRepository
 import com.bridgelabz.bookstore.exceptions._
 import com.bridgelabz.bookstore.interfaces.IWishListManager
@@ -11,7 +13,8 @@ import scala.util.{Failure, Success, Try}
 
 class WishListManager(wishListCollection: ICrudRepository[WishList],
                       userCollection: ICrudRepository[User],
-                      productCollection: ICrudRepository[Product])
+                      productCollection: ICrudRepository[Product],
+                      cartCollection: ICrudRepository[Cart])
 
   extends IWishListManager {
 
@@ -92,6 +95,45 @@ class WishListManager(wishListCollection: ICrudRepository[WishList],
     }
   }
 
+  def addItemToCart(userId: String, productId: Int, quantity: Int): Future[Boolean] = {
+    val checks = for {
+      user <- verifyUserId(userId)
+      items <- getItemsByUserId(userId)
+      carts <- cartCollection.read(userId, "userId")
+      product <- productCollection.read(productId, "productId")
+    } yield (user, items, carts, product)
+
+    checks.transform {
+      case Success(elements) =>
+        if (elements._2.nonEmpty) {
+          if (elements._2.exists(item => item.productId == productId)) {
+
+            //add item to cart
+            if(elements._4.nonEmpty && elements._4.head.quantity >= quantity) {
+              if (elements._3.nonEmpty) {
+                val newCartItems = elements._3.head.items :+ CartItem(productId, new Date().getTime, quantity)
+                cartCollection.update(userId, newCartItems, "userId", "items")
+              }
+              else {
+                val cart = Cart(userId, Seq(CartItem(productId, new Date().getTime, quantity)))
+                cartCollection.create(cart)
+              }
+              Try(true)
+            }
+            else{
+              throw new ProductQuantityUnavailableException
+            }
+          }
+          else {
+            throw new ProductDoesNotExistException
+          }
+        }
+        else {
+          throw new WishListDoesNotExistException
+        }
+      case Failure(exception) => throw exception
+    }
+  }
 
   def getUserByUserId(userId: String): Future[Option[User]] = {
     userCollection.read(userId, "userId").map(seq => {
