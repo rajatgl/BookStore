@@ -10,7 +10,7 @@ import com.bridgelabz.bookstore.database.managers.upgraded.{ProductManager2, Use
 import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection2}
 import com.bridgelabz.bookstore.database.mysql.configurations.MySqlUtils
 import com.bridgelabz.bookstore.database.mysql.tables.upgraded.{CartTableById, ProductTable2, UserTable2}
-import com.bridgelabz.bookstore.factory.DatabaseFactory
+import com.bridgelabz.bookstore.factory.{DatabaseEnums, DatabaseFactory}
 import com.bridgelabz.bookstore.interfaces.{IProductManager, IUserManager}
 import com.bridgelabz.bookstore.models.{Cart, CartItem, Otp, OutputMessage, Product, User}
 import com.bridgelabz.bookstore.routes.{ProductRoutes, UserRoutes}
@@ -60,28 +60,9 @@ object Main extends App with OutputMessageJsonSupport {
   }
 
 
-  //All databases
-//  val userCollection: ICrudRepository[User] = new DatabaseCollection2[User]("users",CodecRepository.USER)
-//  val userCollection: ICrudRepository[User] = new UserTable2("users")
-//  val otpCollection: ICrudRepository[Otp] = new DatabaseCollection2[Otp]("userOtp",CodecRepository.OTP)
-//  val productCollection: ICrudRepository[Product] = new DatabaseCollection2[Product]("products",CodecRepository.PRODUCT)
-//  val productCollection: ICrudRepository[Product] = new ProductTable2("products")
-
-  //All managers
-  //val defaultUserManager: IUserManager = new UserManager2(userCollection, otpCollection)
-  //val defaultProductManager: IProductManager = new ProductManager2(productCollection,userCollection)
-
-  val defaultUserManager: IUserManager = DatabaseFactory("MONGODB_USER").asInstanceOf[IUserManager]
-  val defaultProductManager : IProductManager = DatabaseFactory("MONGODB_PRODUCT").asInstanceOf[IProductManager]
-  val defaultWishListManager : IWishListManager = DatabaseFactory("MONGODB_WISHLIST").asInstanceOf[IWishListManager]
-//  val productCollection: ICrudRepository[Product] = new ProductTable2("products")
-//  val wishListCollection: ICrudRepository[WishList] = ???
-//  val cartCollection: ICrudRepository[Cart] = ???
-
-  //All managers
-//  val defaultUserManager: IUserManager = new UserManager2(userCollection, otpCollection)
-//  val defaultProductManager: IProductManager = new ProductManager2(productCollection, userCollection)
-//  val defaultWishListManager: IWishListManager = new WishListManager(wishListCollection, userCollection, productCollection, cartCollection)
+  val defaultUserManager: IUserManager = DatabaseFactory(DatabaseEnums.MONGODB_USER).asInstanceOf[IUserManager]
+  val defaultProductManager : IProductManager = DatabaseFactory(DatabaseEnums.MONGODB_PRODUCT).asInstanceOf[IProductManager]
+  val defaultWishListManager : IWishListManager = DatabaseFactory(DatabaseEnums.MONGODB_WISHLIST).asInstanceOf[IWishListManager]
 
   def route(userManager: IUserManager, productManager: IProductManager, wishListManager: IWishListManager): Route = {
 
