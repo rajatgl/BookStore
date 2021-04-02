@@ -11,13 +11,11 @@ import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseColle
 import com.bridgelabz.bookstore.database.mysql.configurations.MySqlUtils
 import com.bridgelabz.bookstore.database.mysql.tables.upgraded.{CartTableById, ProductTable2, UserTable2}
 import com.bridgelabz.bookstore.factory.{DatabaseEnums, DatabaseFactory}
-import com.bridgelabz.bookstore.interfaces.{IProductManager, IUserManager}
+import com.bridgelabz.bookstore.interfaces.{ICartManager, IProductManager, IUserManager, IWishListManager}
 import com.bridgelabz.bookstore.models.{Cart, CartItem, Otp, OutputMessage, Product, User}
-import com.bridgelabz.bookstore.routes.{ProductRoutes, UserRoutes}
+import com.bridgelabz.bookstore.routes.{CartRoutes, ProductRoutes, UserRoutes, WishListRoutes}
 import com.bridgelabz.bookstore.database.mysql.tables.upgraded.{ProductTable2, UserTable2}
-import com.bridgelabz.bookstore.interfaces.{IProductManager, IUserManager, IWishListManager}
 import com.bridgelabz.bookstore.marshallers.OutputMessageJsonSupport
-import com.bridgelabz.bookstore.routes.{ProductRoutes, UserRoutes, WishListRoutes}
 import com.typesafe.scalalogging.Logger
 
 import concurrent.duration._
@@ -63,12 +61,14 @@ object Main extends App with OutputMessageJsonSupport {
   val defaultUserManager: IUserManager = DatabaseFactory(DatabaseEnums.MONGODB_USER).asInstanceOf[IUserManager]
   val defaultProductManager : IProductManager = DatabaseFactory(DatabaseEnums.MONGODB_PRODUCT).asInstanceOf[IProductManager]
   val defaultWishListManager : IWishListManager = DatabaseFactory(DatabaseEnums.MONGODB_WISHLIST).asInstanceOf[IWishListManager]
+  val defaultCartManager : ICartManager= DatabaseFactory(DatabaseEnums.MONGODB_CART).asInstanceOf[ICartManager]
 
-  def route(userManager: IUserManager, productManager: IProductManager, wishListManager: IWishListManager): Route = {
+  def route(userManager: IUserManager, productManager: IProductManager, wishListManager: IWishListManager, cartLisManager : ICartManager): Route = {
 
     val userRoutes = new UserRoutes(userManager)
     val productRoutes = new ProductRoutes(productManager)
     val wishlistRoutes = new WishListRoutes(wishListManager)
+    val cartRoutes = new CartRoutes(cartLisManager)
 
     handleExceptions(exceptionHandler){
       Directives.concat(
@@ -84,13 +84,19 @@ object Main extends App with OutputMessageJsonSupport {
         // wishlist routes
         wishlistRoutes.addItem,
         wishlistRoutes.getItems,
-        wishlistRoutes.removeItem
+        wishlistRoutes.removeItem,
+        wishlistRoutes.addItemToCart,
+        // cart routes
+        cartRoutes.addItem,
+        cartRoutes.getItems,
+        cartRoutes.removeItem,
+        cartRoutes.getPrice
       )
     }
   }
 
   //binder for the server
-  val binder = Http().newServerAt(host, port).bind(route(defaultUserManager,defaultProductManager,defaultWishListManager))
+  val binder = Http().newServerAt(host, port).bind(route(defaultUserManager,defaultProductManager,defaultWishListManager,defaultCartManager))
   binder.onComplete {
     case Success(serverBinding) => logger.info(s"Listening to ${serverBinding.localAddress}")
     case Failure(error) => logger.error(s"Error : ${error.getMessage}")

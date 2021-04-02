@@ -13,7 +13,7 @@ class CartManager(cartCollection: ICrudRepository[Cart],
                   userCollection: ICrudRepository[User],
                   productCollection: ICrudRepository[Product]) extends ICartManager {
 
-  val taxPercent: Double = System.getenv("TAX_PERCENT").toDouble
+  val taxPercent: Double = sys.env("TAX_PERCENT").toDouble
 
   override def addItem(userId: String, item: CartItem): Future[Boolean] = {
     val checks = for {

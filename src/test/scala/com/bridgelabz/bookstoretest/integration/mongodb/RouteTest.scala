@@ -181,7 +181,7 @@ class RouteTest extends AnyWordSpec
 
       val postRequest = HttpRequest(
         HttpMethods.POST,
-        uri = "/product",
+        uri = "/addProduct",
         entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
       )
 

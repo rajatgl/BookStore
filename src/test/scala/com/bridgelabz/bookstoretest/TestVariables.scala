@@ -57,6 +57,18 @@ object TestVariables {
 
     Cart(userId,items)
 
+  def cartTest(userId: String = user().userId,
+           items: Seq[CartItem] = Seq(CartItem(product().productId,
+             1616838811,1))): Cart =
+
+    Cart(userId,items)
+
+  def wishListTest(userId: String = user().userId,
+               items: Seq[WishListItem] = Seq(WishListItem(product().productId,
+                 1616838811))): WishList =
+
+    WishList(userId, items)
+
   def price(totalPrice: Double = 3000,
             taxPrice: Double = 390,
             grandTotal: Double = 3390): Price =

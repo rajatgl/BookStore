@@ -1,7 +1,7 @@
 package com.bridgelabz.bookstore.factory
 
 import com.bridgelabz.bookstore.database.interfaces.ICrudRepository
-import com.bridgelabz.bookstore.database.managers.upgraded.{ProductManager2, UserManager2, WishListManager}
+import com.bridgelabz.bookstore.database.managers.upgraded.{CartManager, ProductManager2, UserManager2, WishListManager}
 import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection2}
 import com.bridgelabz.bookstore.database.mysql.tables.CartTable
 import com.bridgelabz.bookstore.database.mysql.tables.upgraded.{CartTableById, ProductTable2, UserTable2, WishListTableById}
@@ -21,6 +21,10 @@ object DatabaseFactory{
                                              val cartCollection: ICrudRepository[Cart] = getCartDatabase("mongodb")
                                              val wishListCollection: ICrudRepository[WishList] = getWishListDatabase("mongodb")
                                              new WishListManager(wishListCollection, userCollection, productCollection, cartCollection)
+      case DatabaseEnums.MONGODB_CART =>  val userCollection: ICrudRepository[User] = getUserDatabase("mongodb")
+                                          val productCollection: ICrudRepository[Product] = getProductDatabase("mongodb")
+                                          val cartCollection: ICrudRepository[Cart] = getCartDatabase("mongodb")
+                                          new CartManager(cartCollection,userCollection,productCollection)
       case DatabaseEnums.MYSQL_USER =>      val userCollection: ICrudRepository[User] = getUserDatabase("mysql")
                                             new UserManager2(userCollection, otpCollection)
       case DatabaseEnums.MYSQL_PRODUCT =>   val userCollection: ICrudRepository[User] = getUserDatabase("mysql")
