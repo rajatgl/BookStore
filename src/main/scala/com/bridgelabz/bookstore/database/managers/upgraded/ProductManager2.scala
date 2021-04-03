@@ -15,6 +15,4 @@ class ProductManager2(productCollection: ICrudRepository[Product], userCollectio
       seq.headOption
     })
   }
-
-  def helloWorld(): String = "Hello World"
 }

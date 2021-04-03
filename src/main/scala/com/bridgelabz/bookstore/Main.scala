@@ -6,20 +6,15 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives.{complete, extractUri, handleExceptions}
 import akka.http.scaladsl.server.{Directives, ExceptionHandler, Route}
 import com.bridgelabz.bookstore.database.interfaces.ICrudRepository
-import com.bridgelabz.bookstore.database.managers.upgraded.{ProductManager2, UserManager2, WishListManager}
-import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection2}
-import com.bridgelabz.bookstore.database.mysql.configurations.MySqlUtils
-import com.bridgelabz.bookstore.database.mysql.tables.upgraded.{CartTableById, ProductTable2, UserTable2}
-import com.bridgelabz.bookstore.factory.{DatabaseEnums, DatabaseFactory}
+import com.bridgelabz.bookstore.database.managers.upgraded.{CartManager, ProductManager2, UserManager2, WishListManager}
+import com.bridgelabz.bookstore.factory.{Collections, DatabaseFactory, Databases}
 import com.bridgelabz.bookstore.interfaces.{ICartManager, IProductManager, IUserManager, IWishListManager}
-import com.bridgelabz.bookstore.models.{Cart, CartItem, Otp, OutputMessage, Product, User}
-import com.bridgelabz.bookstore.routes.{CartRoutes, ProductRoutes, UserRoutes, WishListRoutes}
-import com.bridgelabz.bookstore.database.mysql.tables.upgraded.{ProductTable2, UserTable2}
 import com.bridgelabz.bookstore.marshallers.OutputMessageJsonSupport
+import com.bridgelabz.bookstore.models.{Cart, Otp, OutputMessage, Product, User, WishList}
+import com.bridgelabz.bookstore.routes.{CartRoutes, ProductRoutes, UserRoutes, WishListRoutes}
 import com.typesafe.scalalogging.Logger
 
-import concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
 /**
@@ -47,30 +42,58 @@ object Main extends App with OutputMessageJsonSupport {
       extractUri { _ =>
         logger.error(nex.getStackTrace.mkString("Array(", ", ", ")"))
         complete(StatusCodes.INTERNAL_SERVER_ERROR.intValue() ->
-          OutputMessage(StatusCodes.INTERNAL_SERVER_ERROR.intValue(), "Null value found while parsing the data. Contact the admin."))
+          OutputMessage(StatusCodes.INTERNAL_SERVER_ERROR.intValue(),
+            "Null value found while parsing the data. Contact the admin."))
       }
     case ex: Exception =>
       extractUri { _ =>
         logger.error(ex.getStackTrace.mkString("Array(", ", ", ")"))
         complete(StatusCodes.INTERNAL_SERVER_ERROR.intValue() ->
-          OutputMessage(StatusCodes.INTERNAL_SERVER_ERROR.intValue(), "Some error occurred. Please try again later."))
+          OutputMessage(StatusCodes.INTERNAL_SERVER_ERROR.intValue(),
+            "Some error occurred. Please try again later."))
       }
   }
 
+  val userCollection: ICrudRepository[User] = DatabaseFactory[User](Collections.USER, Databases.MONGODB)
+  val otpCollection: ICrudRepository[Otp] = DatabaseFactory[Otp](Collections.OTP, Databases.MONGODB)
+  val productCollection: ICrudRepository[Product] = DatabaseFactory[Product](Collections.PRODUCT, Databases.MONGODB)
+  val wishListCollection: ICrudRepository[WishList] = DatabaseFactory[WishList](Collections.WISHLIST, Databases.MYSQL)
+  val cartCollection: ICrudRepository[Cart] = DatabaseFactory[Cart](Collections.CART, Databases.MONGODB)
 
-  val defaultUserManager: IUserManager = DatabaseFactory(DatabaseEnums.MONGODB_USER).asInstanceOf[IUserManager]
-  val defaultProductManager : IProductManager = DatabaseFactory(DatabaseEnums.MONGODB_PRODUCT).asInstanceOf[IProductManager]
-  val defaultWishListManager : IWishListManager = DatabaseFactory(DatabaseEnums.MONGODB_WISHLIST).asInstanceOf[IWishListManager]
-  val defaultCartManager : ICartManager= DatabaseFactory(DatabaseEnums.MONGODB_CART).asInstanceOf[ICartManager]
+  val defaultUserManager: IUserManager = new UserManager2(
+    userCollection,
+    otpCollection
+  )
 
-  def route(userManager: IUserManager, productManager: IProductManager, wishListManager: IWishListManager, cartLisManager : ICartManager): Route = {
+  val defaultProductManager: IProductManager = new ProductManager2(
+    productCollection,
+    userCollection
+  )
+
+  val defaultWishListManager: IWishListManager = new WishListManager(
+    wishListCollection,
+    userCollection,
+    productCollection,
+    cartCollection
+  )
+
+  val defaultCartManager: ICartManager = new CartManager(
+    cartCollection,
+    userCollection,
+    productCollection
+  )
+
+  def route(userManager: IUserManager,
+            productManager: IProductManager,
+            wishListManager: IWishListManager,
+            cartLisManager: ICartManager): Route = {
 
     val userRoutes = new UserRoutes(userManager)
     val productRoutes = new ProductRoutes(productManager)
     val wishlistRoutes = new WishListRoutes(wishListManager)
     val cartRoutes = new CartRoutes(cartLisManager)
 
-    handleExceptions(exceptionHandler){
+    handleExceptions(exceptionHandler) {
       Directives.concat(
         //user routes
         userRoutes.loginRoute,
@@ -96,7 +119,10 @@ object Main extends App with OutputMessageJsonSupport {
   }
 
   //binder for the server
-  val binder = Http().newServerAt(host, port).bind(route(defaultUserManager,defaultProductManager,defaultWishListManager,defaultCartManager))
+  val binder = Http().newServerAt(host, port).bind(route(defaultUserManager,
+    defaultProductManager,
+    defaultWishListManager,
+    defaultCartManager))
   binder.onComplete {
     case Success(serverBinding) => logger.info(s"Listening to ${serverBinding.localAddress}")
     case Failure(error) => logger.error(s"Error : ${error.getMessage}")
