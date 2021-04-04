@@ -42,20 +42,15 @@ class UserManager2(userCollection: ICrudRepository[User], otpCollection: ICrudRe
    * @return future of true if user verified else future fails
    */
   override def verifyUserEmail(email: String): Future[Boolean] = {
-    getUserByEmail(email).map(user => {
-      if(user.isDefined) {
-        userCollection.update(user.get.userId, true, "userId", "verificationComplete")
-        true
-      }
-      else{
-        throw new AccountDoesNotExistException
-      }
-    })
+//    getUserByEmail(email).map(user => {
+//      if(user.isDefined) {
+//        userCollection.update(user.get.userId, true, "userId", "verificationComplete")
+//        true
+//      }
+//      else{
+//        throw new AccountDoesNotExistException
+//      }
+//    })
+    super.verifyUserEmail(email)
   }
-
-  /**
-   *
-   * @param user the new entity which will update the one in database
-   */
-  override def updateAddresses(user: User): Unit = userCollection.update(user.userId, user.addresses, "userId", "addresses")
 }

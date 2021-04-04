@@ -6,19 +6,14 @@ import akka.http.scaladsl.model.{HttpEntity, HttpMethods, HttpRequest, MediaType
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.util.ByteString
 import com.bridgelabz.bookstore.database.managers.upgraded.{CartManager, ProductManager2, UserManager2, WishListManager}
-import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection, DatabaseCollection2}
-import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, CartDoesNotExistException, ProductDoesNotExistException, ProductQuantityUnavailableException, UnverifiedAccountException}
+import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection2}
 import com.bridgelabz.bookstore.jwt.TokenManager
 import com.bridgelabz.bookstore.models._
 import com.bridgelabz.bookstore.routes.{CartRoutes, ProductRoutes, UserRoutes, WishListRoutes}
 import com.bridgelabz.bookstoretest.TestVariables
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
-
-import scala.concurrent.Future
 
 
 /**
@@ -27,7 +22,7 @@ import scala.concurrent.Future
 class RouteTest extends AnyWordSpec
   with ScalatestRouteTest
   with MockitoSugar
-  with ScalaFutures  {
+  with ScalaFutures {
 
   var token: String = "invalid_token"
 
@@ -54,15 +49,15 @@ class RouteTest extends AnyWordSpec
   )
 
   val userManager: UserManager2 = new UserManager2(userDatabase, otpDatabase)
-  val productManager: ProductManager2 = new ProductManager2(productDatabase,userDatabase)
-  val cartManager : CartManager = new CartManager(cartDatabase,userDatabase,productDatabase)
-  val wishListManager : WishListManager = new WishListManager(wishListDatabase,userDatabase,productDatabase,cartDatabase)
+  val productManager: ProductManager2 = new ProductManager2(productDatabase, userDatabase)
+  val cartManager: CartManager = new CartManager(cartDatabase, userDatabase, productDatabase)
+  val wishListManager: WishListManager = new WishListManager(wishListDatabase, userDatabase, productDatabase, cartDatabase)
 
 
   lazy val routes: UserRoutes = new UserRoutes(userManager)
   lazy val productRoutes: ProductRoutes = new ProductRoutes(productManager)
-  lazy val cartRoutes : CartRoutes = new CartRoutes(cartManager)
-  lazy val wishListRoutes : WishListRoutes = new WishListRoutes(wishListManager)
+  lazy val cartRoutes: CartRoutes = new CartRoutes(cartManager)
+  lazy val wishListRoutes: WishListRoutes = new WishListRoutes(wishListManager)
 
   "The service" should {
 
@@ -643,12 +638,12 @@ class RouteTest extends AnyWordSpec
         assert(status === StatusCodes.NOT_FOUND)
       }
     }
-        "utility to delete databases" in {
-          userDatabase.collection().drop()
-          otpDatabase.collection().drop()
-          productDatabase.collection().drop()
-          cartDatabase.collection().drop()
-          wishListDatabase.collection().drop()
-        }
+    "utility to delete databases" in {
+      userDatabase.collection().drop()
+      otpDatabase.collection().drop()
+      productDatabase.collection().drop()
+      cartDatabase.collection().drop()
+      wishListDatabase.collection().drop()
+    }
   }
 }

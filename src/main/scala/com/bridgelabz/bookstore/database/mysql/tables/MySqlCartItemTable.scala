@@ -18,8 +18,7 @@ class MySqlCartItemTable(tableName : String,tableNameForUser: String,tableNameFo
        | productId INT,
        | timestamp LONG,
        | quantity INT,
-       | FOREIGN KEY (userId) REFERENCES $tableNameForUser(userId) ON DELETE CASCADE,
-       | FOREIGN KEY (productId) REFERENCES $tableNameForProduct(productId) ON DELETE CASCADE
+       | FOREIGN KEY (userId) REFERENCES $tableNameForUser(userId) ON DELETE CASCADE
        | )
        | """.stripMargin
 

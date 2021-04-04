@@ -37,14 +37,14 @@ object DatabaseFactory {
   def getCartCollection(databaseType: Databases.Value): ICrudRepository[Cart] = {
     databaseType match {
       case Databases.MONGODB => new DatabaseCollection2[Cart]("carts", CodecRepository.CART)
-      case Databases.MYSQL => new CartTableById("carts", "products")
+      case Databases.MYSQL => new CartTableById("carts", "products","users")
     }
   }
 
   def getWishListCollection(databaseType: Databases.Value): ICrudRepository[WishList] = {
     databaseType match {
       case Databases.MONGODB => new DatabaseCollection2[WishList]("wishlist", CodecRepository.WISHLIST)
-      case Databases.MYSQL => new WishListTableById("wishlist", "products")
+      case Databases.MYSQL => new WishListTableById("wishlist", "products", "users")
     }
   }
 }

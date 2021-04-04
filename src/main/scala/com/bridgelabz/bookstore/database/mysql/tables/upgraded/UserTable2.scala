@@ -1,8 +1,8 @@
 package com.bridgelabz.bookstore.database.mysql.tables.upgraded
 
 import com.bridgelabz.bookstore.database.interfaces.ICrudRepository
-import com.bridgelabz.bookstore.database.mysql.configurations.MySqlUtils
-import com.bridgelabz.bookstore.database.mysql.tables.{MySqlAddressTable, MySqlUserTable, UserTable}
+import com.bridgelabz.bookstore.database.mysql.models.MySqlAddress
+import com.bridgelabz.bookstore.database.mysql.tables.UserTable
 import com.bridgelabz.bookstore.models.{Address, User}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -63,7 +63,26 @@ class UserTable2(tableName: String) extends UserTable(tableName) with ICrudRepos
    */
   override def update[U](identifier: Any, entity: U, fieldName: String, parameter: String): Future[Any] = {
     if(parameter.toLowerCase.equals("addresses")){
-      mySqlAddressTable.update(identifier, entity, fieldName, parameter)
+      if(fieldName == "userId") {
+        mySqlAddressTable.delete(identifier, "userId")
+        for (address <- entity.asInstanceOf[Seq[Address]]) {
+          mySqlAddressTable.create(
+            MySqlAddress(
+              identifier.asInstanceOf,
+              address.apartmentNumber,
+              address.apartmentName,
+              address.streetAddress,
+              address.landMark,
+              address.state,
+              address.pinCode
+            )
+          )
+        }
+        Future.successful(true)
+      }
+      else{
+        mySqlAddressTable.update(identifier, entity, fieldName, parameter)
+      }
     }
     else{
       mySqlUserTable.update(identifier, entity, fieldName, parameter)

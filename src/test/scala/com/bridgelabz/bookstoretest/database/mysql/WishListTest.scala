@@ -10,7 +10,9 @@ import concurrent.duration._
 import scala.concurrent.Await
 
 class WishListTest extends AnyFlatSpec with Matchers{
-  val wishListTable : ICrud[WishList] = new WishListTable("wishListTest","products")
+
+  val wishListTable : ICrud[WishList] = new WishListTable("wishListTest","productTest","userTestUsers")
+
   it should "add wishlist to the table" in {
     assert(Await.result(wishListTable.create(
       TestVariables.wishList()),1500.seconds).asInstanceOf[Boolean])

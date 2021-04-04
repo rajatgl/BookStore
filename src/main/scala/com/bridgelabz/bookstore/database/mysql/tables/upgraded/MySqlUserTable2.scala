@@ -32,7 +32,7 @@ class MySqlUserTable2(tableName: String) extends MySqlUserTable(tableName) with 
     val query: String =
       s"""
          |UPDATE $tableName SET
-         |  $parameter = "$entity"
+         |  $parameter = $entity
          |  WHERE $fieldName = $identifier
          |)
          |  """.stripMargin

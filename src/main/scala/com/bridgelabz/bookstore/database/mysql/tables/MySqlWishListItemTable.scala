@@ -17,8 +17,7 @@ class MySqlWishListItemTable(tableName : String,tableNameForUser: String,tableNa
        | (userId VARCHAR(50),
        | productId INT,
        | timestamp LONG,
-       | FOREIGN KEY (userId) REFERENCES $tableNameForUser(userId) ON DELETE CASCADE,
-       | FOREIGN KEY (productId) REFERENCES $tableNameForProduct(productId) ON DELETE CASCADE
+       | FOREIGN KEY (userId) REFERENCES $tableNameForUser(userId) ON DELETE CASCADE
        | )
        | """.stripMargin
 

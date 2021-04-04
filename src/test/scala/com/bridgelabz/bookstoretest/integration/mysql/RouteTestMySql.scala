@@ -1,27 +1,21 @@
-package com.bridgelabz.bookstoretest.integration.mongodb.upgradedtest
+package com.bridgelabz.bookstoretest.integration.mysql
 
 import akka.http.javadsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import akka.http.scaladsl.model.{HttpEntity, HttpMethods, HttpRequest, MediaTypes}
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.util.ByteString
-import com.bridgelabz.bookstore.database.interfaces.{ICrud, ICrudRepository}
+import com.bridgelabz.bookstore.database.interfaces.ICrudRepository
 import com.bridgelabz.bookstore.database.managers.upgraded.{CartManager, ProductManager2, UserManager2, WishListManager}
-import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection, DatabaseCollection2}
-import com.bridgelabz.bookstore.database.mysql.tables.{CartTable, ProductTable, UserTable}
+import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection2}
 import com.bridgelabz.bookstore.database.mysql.tables.upgraded.{CartTableById, ProductTable2, UserTable2, WishListTableById}
-import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, CartDoesNotExistException, ProductDoesNotExistException, ProductQuantityUnavailableException, UnverifiedAccountException}
 import com.bridgelabz.bookstore.jwt.TokenManager
 import com.bridgelabz.bookstore.models._
 import com.bridgelabz.bookstore.routes.{CartRoutes, ProductRoutes, UserRoutes, WishListRoutes}
 import com.bridgelabz.bookstoretest.TestVariables
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
-
-import scala.concurrent.Future
 
 
 /**
@@ -30,32 +24,32 @@ import scala.concurrent.Future
 class RouteTestMySql extends AnyWordSpec
   with ScalatestRouteTest
   with MockitoSugar
-  with ScalaFutures  {
+  with ScalaFutures {
 
   var token: String = "invalid_token"
 
-  val userDatabase : ICrudRepository[User] = new UserTable2("usersusers")
+  val userDatabase: ICrudRepository[User] = new UserTable2("userTest")
 
   val otpDatabase: DatabaseCollection2[Otp] = new DatabaseCollection2[Otp](
     "userOtpTest",
     CodecRepository.OTP)
 
-  val productDatabase: ICrudRepository[Product]  = new ProductTable2("products")
+  val productDatabase: ICrudRepository[Product] = new ProductTable2("productTest")
 
-  val cartDatabase: ICrudRepository[Cart]  = new CartTableById("cartTest","products")
+  val cartDatabase: ICrudRepository[Cart] = new CartTableById("cartTest", "productTest", "userTestUsers")
 
-  val wishListDatabase: ICrudRepository[WishList]  = new WishListTableById("wishlistTest","products")
+  val wishListDatabase: ICrudRepository[WishList] = new WishListTableById("wishlistTest", "productTest", "userTestUsers")
 
   val userManager: UserManager2 = new UserManager2(userDatabase, otpDatabase)
-  val productManager: ProductManager2 = new ProductManager2(productDatabase,userDatabase)
-  val cartManager : CartManager = new CartManager(cartDatabase,userDatabase,productDatabase)
-  val wishListManager : WishListManager = new WishListManager(wishListDatabase,userDatabase,productDatabase,cartDatabase)
+  val productManager: ProductManager2 = new ProductManager2(productDatabase, userDatabase)
+  val cartManager: CartManager = new CartManager(cartDatabase, userDatabase, productDatabase)
+  val wishListManager: WishListManager = new WishListManager(wishListDatabase, userDatabase, productDatabase, cartDatabase)
 
 
   lazy val routes: UserRoutes = new UserRoutes(userManager)
   lazy val productRoutes: ProductRoutes = new ProductRoutes(productManager)
-  lazy val cartRoutes : CartRoutes = new CartRoutes(cartManager)
-  lazy val wishListRoutes : WishListRoutes = new WishListRoutes(wishListManager)
+  lazy val cartRoutes: CartRoutes = new CartRoutes(cartManager)
+  lazy val wishListRoutes: WishListRoutes = new WishListRoutes(wishListManager)
 
   "The service" should {
 
@@ -210,431 +204,403 @@ class RouteTestMySql extends AnyWordSpec
     }
   }
 
-  // Routes Test Cart
 
-  // Add item test
-  "This service" should {
+  "Route should add item to the cart for Post request to /cart/item" in {
 
-    "Route should add item to the cart for Post request to /cart/item" in {
+    val jsonRequest = ByteString(
+      s"""
+         |{
+         |    "productId": ${TestVariables.cartTest().items.head.productId},
+         |    "quantity": ${TestVariables.cartTest().items.head.quantity}
+         |}
+         |""".stripMargin
+    )
 
-      val jsonRequest = ByteString(
-        s"""
-           |{
-           |    "productId": ${TestVariables.cartTest().items.head.productId},
-           |    "quantity": ${TestVariables.cartTest().items.head.quantity}
-           |}
-           |""".stripMargin
-      )
-
-      val postRequest = HttpRequest(
-        HttpMethods.POST,
-        uri = "/cart/item",
-        entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
-      )
-      postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> cartRoutes.addItem ~> check {
-        assert(status === StatusCodes.OK)
-      }
-    }
-
-    """Route should fail to add item to cart for
-      | Post request to /wishlist/item with
-      |  AccountDoesNotExistException""".stripMargin in {
-
-      val jsonRequest = ByteString(
-        s"""
-           |{
-           |    "productId": ${TestVariables.cartTest().items.head.productId},
-           |    "quantity": ${TestVariables.cartTest().items.head.quantity}
-           |}
-           |""".stripMargin
-      )
-
-      val postRequest = HttpRequest(
-        HttpMethods.POST,
-        uri = "/cart/item",
-        entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
-      )
-
-      val authorization = TokenManager.generateToken(TestVariables.user().userId)
-
-      postRequest ~> addCredentials(OAuth2BearerToken(authorization)) ~> cartRoutes.addItem ~> check {
-        assert(status === StatusCodes.UNAUTHORIZED)
-      }
-    }
-
-    """Route should fail to add item to cart for
-      | Post request to /wishlist/item with
-      |  UnverifiedAccountException""".stripMargin in {
-
-      val jsonRequest = ByteString(
-        s"""
-           |{
-           |    "productId": ${TestVariables.cartTest().items.head.productId},
-           |    "quantity": ${TestVariables.cartTest().items.head.quantity}
-           |}
-           |""".stripMargin
-      )
-
-      val postRequest = HttpRequest(
-        HttpMethods.POST,
-        uri = "/cart/item",
-        entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
-      )
-
-      val authorization = TokenManager.generateToken(TestVariables.user().userId)
-
-      postRequest ~> addCredentials(OAuth2BearerToken(authorization)) ~> cartRoutes.addItem ~> check {
-        assert(status === StatusCodes.UNAUTHORIZED)
-      }
-    }
-
-    """Route should fail to add item to cart for
-      | Post request to /wishlist/item with
-      |  ProductDoesNotExistException""".stripMargin in {
-
-      val jsonRequest = ByteString(
-        s"""
-           |{
-           |    "productId": ${TestVariables.cart().items.head.productId},
-           |    "quantity": ${TestVariables.cart().items.head.quantity}
-           |}
-           |""".stripMargin
-      )
-
-      val postRequest = HttpRequest(
-        HttpMethods.POST,
-        uri = "/cart/item",
-        entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
-      )
-
-      postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> cartRoutes.addItem ~> check {
-        assert(status === StatusCodes.NOT_FOUND)
-      }
+    val postRequest = HttpRequest(
+      HttpMethods.POST,
+      uri = "/cart/item",
+      entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
+    )
+    postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> cartRoutes.addItem ~> check {
+      assert(status === StatusCodes.NOT_FOUND)
     }
   }
 
-  // Get Items Test
-  "This service" should {
+  """Route should fail to add item to cart for
+    | Post request to /wishlist/item with
+    |  AccountDoesNotExistException""".stripMargin in {
 
-    "Route should fetch all items from cart for Get request to /cart/items" in {
+    val jsonRequest = ByteString(
+      s"""
+         |{
+         |    "productId": ${TestVariables.cartTest().items.head.productId},
+         |    "quantity": ${TestVariables.cartTest().items.head.quantity}
+         |}
+         |""".stripMargin
+    )
 
-      Get("/cart/items") ~>
-        addCredentials(OAuth2BearerToken(TokenManager.generateToken(TestVariables.user().userId))) ~>
-        cartRoutes.getItems ~>
-        check {
-          status.equals(StatusCodes.OK)
-        }
-    }
+    val postRequest = HttpRequest(
+      HttpMethods.POST,
+      uri = "/cart/item",
+      entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
+    )
 
-    """Route should fail to fetch items from cart for
-      | Get request to /cart/items
-      | with AccountDoesNotExistException""".stripMargin in {
+    val authorization = TokenManager.generateToken(TestVariables.user().userId)
 
-      Get("/cart/items") ~>
-        addCredentials(OAuth2BearerToken(TokenManager.generateToken(TestVariables.user().userId))) ~>
-        cartRoutes.getItems ~>
-        check {
-          status.equals(StatusCodes.UNAUTHORIZED)
-        }
-    }
-
-    """Route should fail to fetch items from cart for
-      | Get request to /cart/items
-      | with UnverifiedAccountException""".stripMargin in {
-
-      Get("/cart/items") ~>
-        addCredentials(OAuth2BearerToken(TokenManager.generateToken(TestVariables.user().userId))) ~>
-        cartRoutes.getItems ~>
-        check {
-          status.equals(StatusCodes.UNAUTHORIZED)
-        }
-    }
-
-  }
-
-  // Remove items test
-  "This service " should {
-
-    "Route should remove an item from the cart for Delete request to /cart/remove" in {
-
-      val jsonRequest = ByteString(
-        s"""
-           |{
-           |    "productId": ${TestVariables.cartTest().items.head.productId}
-           |}
-           |""".stripMargin
-      )
-
-      val postRequest = HttpRequest(
-        HttpMethods.DELETE,
-        uri = "/cart/remove",
-        entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
-      )
-
-      postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> cartRoutes.removeItem ~> check {
-        assert(status === StatusCodes.OK)
-      }
-    }
-
-    """Route should fail to remove an item from the cart for
-      | Delete request to /cart/remove
-      |  with AccountDoesNotExistException""".stripMargin in {
-
-      val jsonRequest = ByteString(
-        s"""
-           |{
-           |    "productId": ${TestVariables.cart().items.head.productId}
-           |}
-           |""".stripMargin
-      )
-
-      val postRequest = HttpRequest(
-        HttpMethods.DELETE,
-        uri = "/cart/remove",
-        entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
-      )
-
-      postRequest ~> addCredentials(OAuth2BearerToken("invalid")) ~> cartRoutes.removeItem ~> check {
-        assert(status === StatusCodes.UNAUTHORIZED)
-      }
-
-    }
-
-    """Route should fail to remove an item from the cart for
-      | Delete request to /cart/remove
-      |  with ProductDoesNotExistException""".stripMargin in {
-
-      val jsonRequest = ByteString(
-        s"""
-           |{
-           |    "productId": ${TestVariables.cart().items.head.productId}
-           |}
-           |""".stripMargin
-      )
-
-      val postRequest = HttpRequest(
-        HttpMethods.DELETE,
-        uri = "/cart/remove",
-        entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
-      )
-
-      postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> cartRoutes.removeItem ~> check {
-        assert(status === StatusCodes.NOT_FOUND)
-      }
-
-    }
-
-    """Route should fail to remove an item from the cart for
-      | Delete request to /cart/remove
-      |  with CartDoesNotExistException""".stripMargin in {
-
-      val jsonRequest = ByteString(
-        s"""
-           |{
-           |    "productId": ${TestVariables.cart().items.head.productId}
-           |}
-           |""".stripMargin
-      )
-
-      val postRequest = HttpRequest(
-        HttpMethods.DELETE,
-        uri = "/cart/remove",
-        entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
-      )
-
-      postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> cartRoutes.removeItem ~> check {
-        assert(status === StatusCodes.NOT_FOUND)
-      }
-    }
-  }
-  // Routes Test WishList
-
-  // Add item test
-  "This service" should {
-
-    "Route should add item to the cart for Post request to /wishlist/item" in {
-
-      val jsonRequest = ByteString(
-        s"""
-           |{
-           |    "productId": ${TestVariables.wishListTest().items.head.productId}
-           |}
-           |""".stripMargin
-      )
-
-      val postRequest = HttpRequest(
-        HttpMethods.POST,
-        uri = "/wishlist/item",
-        entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
-      )
-      postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> wishListRoutes.addItem ~> check {
-        assert(status === StatusCodes.OK)
-      }
-    }
-
-    "Route should fail to add item to a wish-list for Post request to /wishlist/item due to AccountDoesNotExistException" in {
-
-      val jsonRequest = ByteString(
-        s"""
-           |{
-           |    "productId": ${TestVariables.wishList().items.head.productId}
-           |}
-           |""".stripMargin
-      )
-
-      val postRequest = HttpRequest(
-        HttpMethods.POST,
-        uri = "/wishlist/item",
-        entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
-      )
-
-      postRequest ~> addCredentials(OAuth2BearerToken("invalid")) ~> wishListRoutes.addItem ~> check {
-        assert(status === StatusCodes.UNAUTHORIZED)
-      }
-    }
-
-    "Route should fail to add item to a wish-list for Post request to /wishlist/item due to ProductDoesNotExistException" in {
-
-      val jsonRequest = ByteString(
-        s"""
-           |{
-           |    "productId": ${TestVariables.wishList().items.head.productId}
-           |}
-           |""".stripMargin
-      )
-
-      val postRequest = HttpRequest(
-        HttpMethods.POST,
-        uri = "/wishlist/item",
-        entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
-      )
-
-      postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> wishListRoutes.addItem ~> check {
-        assert(status === StatusCodes.NOT_FOUND)
-      }
+    postRequest ~> addCredentials(OAuth2BearerToken(authorization)) ~> cartRoutes.addItem ~> check {
+      assert(status === StatusCodes.UNAUTHORIZED)
     }
   }
 
-  // Get Items Test
-  "This service" should {
+  """Route should fail to add item to cart for
+    | Post request to /wishlist/item with
+    |  UnverifiedAccountException""".stripMargin in {
 
-    "Route should fetch all items from wishlist for Get request to /wishlist/items" in {
+    val jsonRequest = ByteString(
+      s"""
+         |{
+         |    "productId": ${TestVariables.cartTest().items.head.productId},
+         |    "quantity": ${TestVariables.cartTest().items.head.quantity}
+         |}
+         |""".stripMargin
+    )
 
-      Get("/wishlist/items") ~>
-        addCredentials(OAuth2BearerToken(token)) ~>
-        wishListRoutes.getItems ~>
-        check {
-          status.equals(StatusCodes.OK)
-        }
+    val postRequest = HttpRequest(
+      HttpMethods.POST,
+      uri = "/cart/item",
+      entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
+    )
+
+    val authorization = TokenManager.generateToken(TestVariables.user().userId)
+
+    postRequest ~> addCredentials(OAuth2BearerToken(authorization)) ~> cartRoutes.addItem ~> check {
+      assert(status === StatusCodes.UNAUTHORIZED)
     }
+  }
 
-    "Route should fail to fetch items from the wishlist for Get request to /wishlist/items due to AccountDoesNotExistException" in {
+  """Route should fail to add item to cart for
+    | Post request to /wishlist/item with
+    |  ProductDoesNotExistException""".stripMargin in {
 
-      Get("/wishlist/items") ~>
-        addCredentials(OAuth2BearerToken(token)) ~>
-        wishListRoutes.getItems ~>
-        check {
-          status.equals(StatusCodes.UNAUTHORIZED)
-        }
+    val jsonRequest = ByteString(
+      s"""
+         |{
+         |    "productId": ${TestVariables.cart().items.head.productId},
+         |    "quantity": ${TestVariables.cart().items.head.quantity}
+         |}
+         |""".stripMargin
+    )
+
+    val postRequest = HttpRequest(
+      HttpMethods.POST,
+      uri = "/cart/item",
+      entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
+    )
+
+    postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> cartRoutes.addItem ~> check {
+      assert(status === StatusCodes.OK)
     }
+  }
 
-    "Route should fail to fetch items from the wishlist for Get request to /wishlist/items due to UnverifiedAccountException" in {
+  "Route should fetch all items from cart for Get request to /cart/items" in {
 
-      Get("/wishlist/items") ~>
-        addCredentials(OAuth2BearerToken(token)) ~>
-        wishListRoutes.getItems ~>
-        check {
-          status.equals(StatusCodes.UNAUTHORIZED)
-        }
+    Get("/cart/items") ~>
+      addCredentials(OAuth2BearerToken(TokenManager.generateToken(TestVariables.user().userId))) ~>
+      cartRoutes.getItems ~>
+      check {
+        status.equals(StatusCodes.OK)
+      }
+  }
+
+  """Route should fail to fetch items from cart for
+    | Get request to /cart/items
+    | with AccountDoesNotExistException""".stripMargin in {
+
+    Get("/cart/items") ~>
+      addCredentials(OAuth2BearerToken(TokenManager.generateToken(TestVariables.user().userId))) ~>
+      cartRoutes.getItems ~>
+      check {
+        status.equals(StatusCodes.UNAUTHORIZED)
+      }
+  }
+
+  """Route should fail to fetch items from cart for
+    | Get request to /cart/items
+    | with UnverifiedAccountException""".stripMargin in {
+
+    Get("/cart/items") ~>
+      addCredentials(OAuth2BearerToken(TokenManager.generateToken(TestVariables.user().userId))) ~>
+      cartRoutes.getItems ~>
+      check {
+        status.equals(StatusCodes.UNAUTHORIZED)
+      }
+  }
+
+  "Route should remove an item from the cart for Delete request to /cart/remove" in {
+
+    val jsonRequest = ByteString(
+      s"""
+         |{
+         |    "productId": ${TestVariables.cartTest().items.head.productId}
+         |}
+         |""".stripMargin
+    )
+
+    val postRequest = HttpRequest(
+      HttpMethods.DELETE,
+      uri = "/cart/remove",
+      entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
+    )
+
+    postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> cartRoutes.removeItem ~> check {
+      assert(status === StatusCodes.OK)
+    }
+  }
+
+  """Route should fail to remove an item from the cart for
+    | Delete request to /cart/remove
+    |  with AccountDoesNotExistException""".stripMargin in {
+
+    val jsonRequest = ByteString(
+      s"""
+         |{
+         |    "productId": ${TestVariables.cart().items.head.productId}
+         |}
+         |""".stripMargin
+    )
+
+    val postRequest = HttpRequest(
+      HttpMethods.DELETE,
+      uri = "/cart/remove",
+      entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
+    )
+
+    postRequest ~> addCredentials(OAuth2BearerToken("invalid")) ~> cartRoutes.removeItem ~> check {
+      assert(status === StatusCodes.UNAUTHORIZED)
     }
 
   }
 
-  // Remove items test
-  "This service " should {
+  """Route should fail to remove an item from the cart for
+    | Delete request to /cart/remove
+    |  with ProductDoesNotExistException""".stripMargin in {
 
-    "Route should remove an item to a wish-list for Delete request to /wishlist/remove" in {
+    val jsonRequest = ByteString(
+      s"""
+         |{
+         |    "productId": ${TestVariables.cart().items.head.productId}
+         |}
+         |""".stripMargin
+    )
 
-      val jsonRequest = ByteString(
-        s"""
-           |{
-           |    "productId": ${TestVariables.wishListTest().items.head.productId}
-           |}
-           |""".stripMargin
-      )
+    val postRequest = HttpRequest(
+      HttpMethods.DELETE,
+      uri = "/cart/remove",
+      entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
+    )
 
-      val postRequest = HttpRequest(
-        HttpMethods.DELETE,
-        uri = "/wishlist/remove",
-        entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
-      )
-
-      postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> wishListRoutes.removeItem ~> check {
-        assert(status === StatusCodes.OK)
-      }
+    postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> cartRoutes.removeItem ~> check {
+      assert(status === StatusCodes.NOT_FOUND)
     }
 
-    "Route should fail to remove an item to a wish-list for Delete request to /wishlist/remove due to AccountDoesNotExistException" in {
+  }
 
-      val jsonRequest = ByteString(
-        s"""
-           |{
-           |    "productId": ${TestVariables.wishList().items.head.productId}
-           |}
-           |""".stripMargin
-      )
+  """Route should fail to remove an item from the cart for
+    | Delete request to /cart/remove
+    |  with CartDoesNotExistException""".stripMargin in {
 
-      val postRequest = HttpRequest(
-        HttpMethods.DELETE,
-        uri = "/wishlist/remove",
-        entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
-      )
+    val jsonRequest = ByteString(
+      s"""
+         |{
+         |    "productId": ${TestVariables.cart().items.head.productId}
+         |}
+         |""".stripMargin
+    )
 
-      postRequest ~> addCredentials(OAuth2BearerToken("invalid")) ~> wishListRoutes.removeItem ~> check {
-        assert(status === StatusCodes.UNAUTHORIZED)
-      }
+    val postRequest = HttpRequest(
+      HttpMethods.DELETE,
+      uri = "/cart/remove",
+      entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
+    )
+
+    postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> cartRoutes.removeItem ~> check {
+      assert(status === StatusCodes.NOT_FOUND)
     }
+  }
 
-    "Route should fail to remove an item to a wish-list for Delete request to /wishlist/remove due to ProductDoesNotExistException" in {
+  "Route should add item to the cart for Post request to /wishlist/item" in {
 
-      val jsonRequest = ByteString(
-        s"""
-           |{
-           |    "productId": ${TestVariables.wishList().items.head.productId}
-           |}
-           |""".stripMargin
-      )
+    val jsonRequest = ByteString(
+      s"""
+         |{
+         |    "productId": ${TestVariables.wishListTest().items.head.productId}
+         |}
+         |""".stripMargin
+    )
 
-      val postRequest = HttpRequest(
-        HttpMethods.DELETE,
-        uri = "/wishlist/remove",
-        entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
-      )
-
-      postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> wishListRoutes.removeItem ~> check {
-        assert(status === StatusCodes.NOT_FOUND)
-      }
+    val postRequest = HttpRequest(
+      HttpMethods.POST,
+      uri = "/wishlist/item",
+      entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
+    )
+    postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> wishListRoutes.addItem ~> check {
+      assert(status === StatusCodes.NOT_FOUND)
     }
+  }
 
-    "Route should fail to remove an item to a wish-list for Delete request to /wishlist/remove due to WishListDoesNotExistException" in {
+  "Route should fail to add item to a wish-list for Post request to /wishlist/item due to AccountDoesNotExistException" in {
 
-      val jsonRequest = ByteString(
-        s"""
-           |{
-           |    "productId": ${TestVariables.wishList().items.head.productId}
-           |}
-           |""".stripMargin
-      )
+    val jsonRequest = ByteString(
+      s"""
+         |{
+         |    "productId": ${TestVariables.wishList().items.head.productId}
+         |}
+         |""".stripMargin
+    )
 
-      val postRequest = HttpRequest(
-        HttpMethods.DELETE,
-        uri = "/wishlist/remove",
-        entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
-      )
+    val postRequest = HttpRequest(
+      HttpMethods.POST,
+      uri = "/wishlist/item",
+      entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
+    )
 
-      postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> wishListRoutes.removeItem ~> check {
-        assert(status === StatusCodes.NOT_FOUND)
+    postRequest ~> addCredentials(OAuth2BearerToken("invalid")) ~> wishListRoutes.addItem ~> check {
+      assert(status === StatusCodes.UNAUTHORIZED)
+    }
+  }
+
+  "Route should fail to add item to a wish-list for Post request to /wishlist/item due to ProductDoesNotExistException" in {
+
+    val jsonRequest = ByteString(
+      s"""
+         |{
+         |    "productId": ${TestVariables.wishList().items.head.productId}
+         |}
+         |""".stripMargin
+    )
+
+    val postRequest = HttpRequest(
+      HttpMethods.POST,
+      uri = "/wishlist/item",
+      entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
+    )
+
+    postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> wishListRoutes.addItem ~> check {
+      assert(status === StatusCodes.OK)
+    }
+  }
+
+  "Route should fetch all items from wishlist for Get request to /wishlist/items" in {
+
+    Get("/wishlist/items") ~>
+      addCredentials(OAuth2BearerToken(token)) ~>
+      wishListRoutes.getItems ~>
+      check {
+        status.equals(StatusCodes.OK)
       }
+  }
+
+  "Route should fail to fetch items from the wishlist for Get request to /wishlist/items due to AccountDoesNotExistException" in {
+
+    Get("/wishlist/items") ~>
+      addCredentials(OAuth2BearerToken(token)) ~>
+      wishListRoutes.getItems ~>
+      check {
+        status.equals(StatusCodes.UNAUTHORIZED)
+      }
+  }
+
+  "Route should fail to fetch items from the wishlist for Get request to /wishlist/items due to UnverifiedAccountException" in {
+
+    Get("/wishlist/items") ~>
+      addCredentials(OAuth2BearerToken(token)) ~>
+      wishListRoutes.getItems ~>
+      check {
+        status.equals(StatusCodes.UNAUTHORIZED)
+      }
+  }
+
+  "Route should remove an item to a wish-list for Delete request to /wishlist/remove" in {
+
+    val jsonRequest = ByteString(
+      s"""
+         |{
+         |    "productId": ${TestVariables.wishListTest().items.head.productId}
+         |}
+         |""".stripMargin
+    )
+
+    val postRequest = HttpRequest(
+      HttpMethods.DELETE,
+      uri = "/wishlist/remove",
+      entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
+    )
+
+    postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> wishListRoutes.removeItem ~> check {
+      assert(status === StatusCodes.OK)
+    }
+  }
+
+  "Route should fail to remove an item to a wish-list for Delete request to /wishlist/remove due to AccountDoesNotExistException" in {
+
+    val jsonRequest = ByteString(
+      s"""
+         |{
+         |    "productId": ${TestVariables.wishList().items.head.productId}
+         |}
+         |""".stripMargin
+    )
+
+    val postRequest = HttpRequest(
+      HttpMethods.DELETE,
+      uri = "/wishlist/remove",
+      entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
+    )
+
+    postRequest ~> addCredentials(OAuth2BearerToken("invalid")) ~> wishListRoutes.removeItem ~> check {
+      assert(status === StatusCodes.UNAUTHORIZED)
+    }
+  }
+
+  "Route should fail to remove an item to a wish-list for Delete request to /wishlist/remove due to ProductDoesNotExistException" in {
+
+    val jsonRequest = ByteString(
+      s"""
+         |{
+         |    "productId": ${TestVariables.wishList().items.head.productId}
+         |}
+         |""".stripMargin
+    )
+
+    val postRequest = HttpRequest(
+      HttpMethods.DELETE,
+      uri = "/wishlist/remove",
+      entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
+    )
+
+    postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> wishListRoutes.removeItem ~> check {
+      assert(status === StatusCodes.NOT_FOUND)
+    }
+  }
+
+  "Route should fail to remove an item to a wish-list for Delete request to /wishlist/remove due to WishListDoesNotExistException" in {
+
+    val jsonRequest = ByteString(
+      s"""
+         |{
+         |    "productId": ${TestVariables.wishList().items.head.productId}
+         |}
+         |""".stripMargin
+    )
+
+    val postRequest = HttpRequest(
+      HttpMethods.DELETE,
+      uri = "/wishlist/remove",
+      entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
+    )
+
+    postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> wishListRoutes.removeItem ~> check {
+      assert(status === StatusCodes.NOT_FOUND)
     }
   }
 }
