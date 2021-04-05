@@ -5,9 +5,7 @@ import akka.http.javadsl.model.StatusCodes
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives.{complete, extractUri, handleExceptions}
 import akka.http.scaladsl.server.{Directives, ExceptionHandler, Route}
-import com.bridgelabz.bookstore.database.interfaces.ICrudRepository
-import com.bridgelabz.bookstore.database.managers.upgraded.{CartManager, ProductManager2, UserManager2, WishListManager}
-import com.bridgelabz.bookstore.factory.{Collections, DatabaseFactory, Databases}
+import com.bridgelabz.bookstore.factory.{Collections, DatabaseEnums, DatabaseFactory, Databases}
 import com.bridgelabz.bookstore.interfaces.{ICartManager, IProductManager, IUserManager, IWishListManager}
 import com.bridgelabz.bookstore.marshallers.OutputMessageJsonSupport
 import com.bridgelabz.bookstore.models.{Cart, Otp, OutputMessage, Product, User, WishList}
@@ -54,34 +52,11 @@ object Main extends App with OutputMessageJsonSupport {
       }
   }
 
-  val userCollection: ICrudRepository[User] = DatabaseFactory[User](Collections.USER, Databases.MONGODB)
-  val otpCollection: ICrudRepository[Otp] = DatabaseFactory[Otp](Collections.OTP, Databases.MONGODB)
-  val productCollection: ICrudRepository[Product] = DatabaseFactory[Product](Collections.PRODUCT, Databases.MONGODB)
-  val wishListCollection: ICrudRepository[WishList] = DatabaseFactory[WishList](Collections.WISHLIST, Databases.MYSQL)
-  val cartCollection: ICrudRepository[Cart] = DatabaseFactory[Cart](Collections.CART, Databases.MONGODB)
+  val defaultUserManager: IUserManager = DatabaseFactory(DatabaseEnums.MONGODB_USER).asInstanceOf[IUserManager]
+  val defaultProductManager : IProductManager = DatabaseFactory(DatabaseEnums.MONGODB_PRODUCT).asInstanceOf[IProductManager]
+  val defaultWishListManager : IWishListManager = DatabaseFactory(DatabaseEnums.MONGODB_WISHLIST).asInstanceOf[IWishListManager]
+  val defaultCartManager : ICartManager= DatabaseFactory(DatabaseEnums.MONGODB_CART).asInstanceOf[ICartManager]
 
-  val defaultUserManager: IUserManager = new UserManager2(
-    userCollection,
-    otpCollection
-  )
-
-  val defaultProductManager: IProductManager = new ProductManager2(
-    productCollection,
-    userCollection
-  )
-
-  val defaultWishListManager: IWishListManager = new WishListManager(
-    wishListCollection,
-    userCollection,
-    productCollection,
-    cartCollection
-  )
-
-  val defaultCartManager: ICartManager = new CartManager(
-    cartCollection,
-    userCollection,
-    productCollection
-  )
 
   def route(userManager: IUserManager,
             productManager: IProductManager,

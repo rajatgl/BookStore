@@ -5,8 +5,8 @@ import com.bridgelabz.bookstore.database.mysql.tables.WishListTable
 import com.bridgelabz.bookstore.models.WishList
 import scala.concurrent.Future
 
-class WishListTableById(tableName: String, productTableName: String, userTableName: String)
-  extends WishListTable(tableName, productTableName, userTableName)
+class WishListTableById(tableName: String,productTableName : String)
+  extends WishListTable(tableName,productTableName)
     with ICrudRepository[WishList]{
   /**
    *

@@ -6,9 +6,9 @@ import com.bridgelabz.bookstore.models.Cart
 
 import scala.concurrent.Future
 
-class CartTableById(tableName: String, productTableName : String, userTableName: String)
-  extends CartTable(tableName, productTableName, userTableName)
-  with ICrudRepository[Cart]{
+class CartTableById(tableName: String,productTableName : String)
+  extends CartTable(tableName,productTableName)
+    with ICrudRepository[Cart]{
   /**
    *
    * @param identifier to identify the item in the database

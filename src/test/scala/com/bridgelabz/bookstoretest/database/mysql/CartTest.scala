@@ -9,7 +9,7 @@ import com.bridgelabz.bookstoretest.TestVariables
 import concurrent.duration._
 import scala.concurrent.Await
 class CartTest extends AnyFlatSpec with Matchers{
-  val cartTable : ICrud[Cart] = new CartTable("cartTest","productTest","userTest")
+  val cartTable : ICrud[Cart] = new CartTable("cartTest","products")
   it should "add details of cart to the table" in {
     assert(Await.result(cartTable.create(
       TestVariables.cart()), 1500.seconds).asInstanceOf[Boolean])
