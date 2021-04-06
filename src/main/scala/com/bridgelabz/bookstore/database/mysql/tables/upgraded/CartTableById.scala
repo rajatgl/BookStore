@@ -6,8 +6,8 @@ import com.bridgelabz.bookstore.models.Cart
 
 import scala.concurrent.Future
 
-class CartTableById(tableName: String,productTableName : String)
-  extends CartTable(tableName,productTableName)
+class CartTableById(tableName: String, productTableName : String, userTableName: String)
+  extends CartTable(tableName, productTableName, userTableName)
     with ICrudRepository[Cart]{
   /**
    *

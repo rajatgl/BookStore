@@ -1,8 +1,9 @@
 package com.bridgelabz.bookstore.database.mongodb
 
-import com.bridgelabz.bookstore.database.interfaces.{ICrud, ICrudRepository}
+import com.bridgelabz.bookstore.database.interfaces.ICrud
 import com.bridgelabz.bookstore.database.mongodb.CodecRepository.CodecNames
 import com.typesafe.scalalogging.Logger
+import org.bson.codecs.configuration.CodecRegistry
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.model.Filters.equal
 
@@ -21,18 +22,15 @@ class DatabaseCollection[T: scala.reflect.ClassTag](collectionName: String,
 
   val logger: Logger = Logger("Database-Config")
 
-  def collection(): MongoCollection[T] = {
-
-    val codecRegistry = CodecRepository.getCodecRegistry(codecName)
-    mongoDbConfig.getCollection[T](collectionName, codecRegistry, databaseName)
-  }
+  private val codecRegistry: CodecRegistry = CodecRepository.getCodecRegistry(codecName)
+  val collection: MongoCollection[T] = mongoDbConfig.getCollection[T](collectionName, codecRegistry, databaseName)
 
   /**
    *
    * @param entity object to be created in the database
    * @return any status identifier for the create operation
    */
-  override def create(entity: T): Future[Any] = collection().insertOne(entity).toFuture()
+  override def create(entity: T): Future[Any] = collection.insertOne(entity).toFuture()
 
   /**
    *
@@ -41,7 +39,7 @@ class DatabaseCollection[T: scala.reflect.ClassTag](collectionName: String,
    * @param fieldName  name of the parameter in the object defined by the identifier
    * @return any status identifier for the update operation
    */
-  override def update(identifier: Any, entity: T, fieldName: String): Future[Any] = collection().replaceOne(equal(fieldName, identifier), entity).toFuture()
+  override def update(identifier: Any, entity: T, fieldName: String): Future[Any] = collection.replaceOne(equal(fieldName, identifier), entity).toFuture()
 
   /**
    *
@@ -49,12 +47,12 @@ class DatabaseCollection[T: scala.reflect.ClassTag](collectionName: String,
    * @param identifier parameter of the (object in the database to be deleted)
    * @return any status identifier for the update operation
    */
-  override def delete(identifier: Any, fieldName: String): Future[Any] = collection().deleteOne(equal(fieldName, identifier)).toFuture()
+  override def delete(identifier: Any, fieldName: String): Future[Any] = collection.deleteOne(equal(fieldName, identifier)).toFuture()
 
   /**
    *
    * @return sequence of objects in the database
    */
-  override def read(): Future[Seq[T]] = collection().find().toFuture()
+  override def read(): Future[Seq[T]] = collection.find().toFuture()
 
 }

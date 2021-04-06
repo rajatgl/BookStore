@@ -13,8 +13,15 @@ class CartManager(cartCollection: ICrudRepository[Cart],
                   userCollection: ICrudRepository[User],
                   productCollection: ICrudRepository[Product]) extends ICartManager {
 
+  //Tax percent to be used for bill calculation
   val taxPercent: Double = sys.env("TAX_PERCENT").toDouble
 
+  /**
+   *
+   * @param userId belonging to the user who is adding an item to the cart
+   * @param item that is being added to the cart
+   * @return future of true/false depending on the success of the addition operation
+   */
   override def addItem(userId: String, item: CartItem): Future[Boolean] = {
     val checks = for {
       user <- verifyUserId(userId)
@@ -46,6 +53,11 @@ class CartManager(cartCollection: ICrudRepository[Cart],
     }
   }
 
+  /**
+   *
+   * @param userId belonging to the user who's cart items are to be fetched
+   * @return a list of Cart Products belonging to the user
+   */
   override def getItems(userId: String): Future[Seq[CartProduct]] = {
 
     verifyUserId(userId).flatMap(_ => {
@@ -67,6 +79,12 @@ class CartManager(cartCollection: ICrudRepository[Cart],
     })
   }
 
+  /**
+   *
+   * @param userId belonging to the user who is removing an item from the cart
+   * @param productId of the product that is being removed from the cart
+   * @return future of true/ false depending on the status of the deletion operation
+   */
   override def removeItem(userId: String, productId: Int): Future[Boolean] = {
     val checks = for {
       user <- verifyUserId(userId)
@@ -97,6 +115,11 @@ class CartManager(cartCollection: ICrudRepository[Cart],
     }
   }
 
+  /**
+   *
+   * @param userId who is fetching the cart price
+   * @return a Price object representing the cart's bill along with added tax
+   */
   override def getPrice(userId: String): Future[Price] = {
     getItems(userId).map(items => {
 
@@ -112,12 +135,24 @@ class CartManager(cartCollection: ICrudRepository[Cart],
     })
   }
 
+
+  /**
+   *
+   * @param userId to be searched for in the database
+   * @return the user who matches the search and if not found then None
+   */
   def getUserByUserId(userId: String): Future[Option[User]] = {
     userCollection.read(userId, "userId").map(seq => {
       seq.headOption
     })
   }
 
+
+  /**
+   *
+   * @param userId to be searched for in the database and is verified
+   * @return the user who matches the search [is verified] and if not found then None
+   */
   def verifyUserId(userId: String): Future[Option[User]] = {
     getUserByUserId(userId).map(optionalUser => {
 
@@ -135,8 +170,19 @@ class CartManager(cartCollection: ICrudRepository[Cart],
     })
   }
 
+
+  /**
+   *
+   * @param productId to be searched for in the database
+   * @return the product who matches the search and if not found then None
+   */
   def verifyProduct(productId: Int): Future[Option[Product]] = productCollection.read(productId, "productId").map(seq => seq.headOption)
 
+  /**
+   *
+   * @param userId who's cart items are to be searched for in the database
+   * @return the cart items that matches the search and if not found then empty sequence
+   */
   def getItemsByUserId(userId: String): Future[Seq[CartItem]] = {
 
     cartCollection.read(userId, "userId").map(carts => {

@@ -20,7 +20,7 @@ class DatabaseCollection2[T: scala.reflect.ClassTag](collectionName: String,
    * @return a sequence of items that have the identifier
    */
   override def read(identifier: Any, fieldName: String): Future[Seq[T]] =
-    collection().find(equal(fieldName,identifier)).toFuture()
+    collection.find(equal(fieldName,identifier)).toFuture()
 
   /**
    *
@@ -31,6 +31,5 @@ class DatabaseCollection2[T: scala.reflect.ClassTag](collectionName: String,
    * @return any status regarding the update operation
    */
   override def update[U](identifier: Any, entity: U, fieldName: String, parameter: String): Future[Any] =
-    collection().updateOne(equal(fieldName, identifier), set(parameter, entity)).toFuture()
-
+    collection.updateOne(equal(fieldName, identifier), set(parameter, entity)).toFuture()
 }

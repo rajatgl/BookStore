@@ -639,11 +639,11 @@ class RouteTest extends AnyWordSpec
       }
     }
     "utility to delete databases" in {
-      userDatabase.collection().drop()
-      otpDatabase.collection().drop()
-      productDatabase.collection().drop()
-      cartDatabase.collection().drop()
-      wishListDatabase.collection().drop()
+      userDatabase.collection.drop()
+      otpDatabase.collection.drop()
+      productDatabase.collection.drop()
+      cartDatabase.collection.drop()
+      wishListDatabase.collection.drop()
     }
   }
 }

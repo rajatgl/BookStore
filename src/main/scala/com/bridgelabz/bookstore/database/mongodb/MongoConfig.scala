@@ -13,6 +13,14 @@ class MongoConfig(uri: String = s"mongodb://${sys.env("MONGO_HOST")}:${sys.env("
   logger.info("inside mongo config")
   private val mongoClient: MongoClient = MongoClient(uri)
 
+  /**
+   *
+   * @param collectionName belonging to the collection that is being fetched
+   * @param codecRegistry Codec registry that is being applied on the collection
+   * @param databaseName belonging to the database the collection is a part of
+   * @tparam T represents the class the objects in the collection belong to
+   * @return the MongoCollection that matches the constraints set by the above parameters
+   */
   def getCollection[T: scala.reflect.ClassTag](collectionName: String,
                                                codecRegistry: CodecRegistry,
                                                databaseName: String):

@@ -10,7 +10,7 @@ import scala.concurrent.Future
 
 class MySqlCartItemTable(tableName : String,tableNameForUser: String,tableNameForProduct: String)
   extends MySqlUtils[MySqlCartItem]
-  with ICrud[MySqlCartItem] {
+    with ICrud[MySqlCartItem] {
   val createCartItemQuery: String =
     s"""
        |CREATE TABLE IF NOT EXISTS $tableName

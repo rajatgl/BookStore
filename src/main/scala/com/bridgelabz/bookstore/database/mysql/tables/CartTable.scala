@@ -10,15 +10,11 @@ import com.bridgelabz.bookstore.models.{Cart, CartItem}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class CartTable(tableName: String,productTableName : String)
+class CartTable(tableName: String,productTableName : String, userTableName: String)
   extends MySqlUtils[Cart]
     with ICrud[Cart] {
 
-  val tableNameForCart: String = tableName.concat("Cart")
-  val tableNameForCartItems: String = tableName.concat("CartItems")
-
-  val mySqlCartTable: MySqlCartTable = new MySqlCartTable(tableNameForCart,"usersusers")
-  val mySqlCartItemTable : MySqlCartItemTable = new MySqlCartItemTable(tableNameForCartItems,"usersusers",productTableName)
+  val mySqlCartItemTable : MySqlCartItemTable = new MySqlCartItemTable(tableName, userTableName, productTableName)
 
   /**
    *
@@ -27,11 +23,7 @@ class CartTable(tableName: String,productTableName : String)
    */
   override def create(entity: Cart): Future[Boolean] = {
     try {
-      mySqlCartTable.create(
-        MySqlCart(
-          entity.userId
-        )
-      )
+
       for(item <- entity.items){
         mySqlCartItemTable.create(
           MySqlCartItem(
@@ -55,16 +47,21 @@ class CartTable(tableName: String,productTableName : String)
    * @return sequence of objects in the database
    */
   override def read(): Future[Seq[Cart]] = {
-    mySqlCartTable.read().map(mySqlCart => {
-      var cart = Seq[Cart]()
-      mySqlCart.foreach(mySqlCartItem => {
-        val items = fetchCartItems(tableNameForCartItems, mySqlCartItem.userId)
-        cart = cart :+ Cart(
-          mySqlCartItem.userId,
-          items
-        )
-      })
-      cart
+
+    mySqlCartItemTable.read().map(seq => {
+
+      var finalSeq: Seq[Cart] = Seq()
+      val sortedSeq: Map[String, Seq[MySqlCartItem]] = seq.groupBy(item => item.userId)
+
+      for((key, value) <- sortedSeq){
+        var cartItems: Seq[CartItem] = Seq()
+        for(item <- value) {
+          cartItems = cartItems :+ CartItem(item.productId, item.timestamp, item.quantity)
+        }
+        finalSeq = finalSeq :+ Cart(key, cartItems)
+      }
+
+      finalSeq
     })
   }
 
@@ -76,12 +73,7 @@ class CartTable(tableName: String,productTableName : String)
    * @return any status identifier for the update operation
    */
   override def update(identifier: Any, entity: Cart, fieldName: String): Future[Boolean] = {
-    mySqlCartTable.update(identifier,
-      MySqlCart(
-        entity.userId
-      ),
-      fieldName
-    )
+
     mySqlCartItemTable.delete(entity.userId,"userId")
     for(item <- entity.items){
       mySqlCartItemTable.create(
@@ -104,7 +96,7 @@ class CartTable(tableName: String,productTableName : String)
    */
   override def delete(identifier: Any, fieldName: String): Future[Boolean] = {
 
-    val query: String = s"DELETE FROM $tableNameForCart WHERE $fieldName = '$identifier'"
+    val query: String = s"DELETE FROM $tableName WHERE $fieldName = '$identifier'"
 
     if (executeUpdate(query) > 0) {
       Future.successful(true)
@@ -112,42 +104,6 @@ class CartTable(tableName: String,productTableName : String)
     else {
       Future.failed(new Exception("Delete-Cart-Items: FAILED"))
     }
-  }
-
-  /**
-   *
-   * @param tableNameForCartItems : Table from where we have to fetch items
-   * @param userId : Items for specific user id
-   * @return : Sequence of CartItems
-   */
-  def fetchCartItems(tableNameForCartItems: String, userId: String) : Seq[CartItem] = {
-    val query = s"SELECT * FROM $tableNameForCartItems WHERE userId = '$userId'"
-    var cartItems = Seq[CartItem]()
-    val connection = MySqlConfig.getConnection(MySqlConnection())
-    try {
-      val stmt: Statement = connection.createStatement
-      try {
-        val rs: ResultSet = stmt.executeQuery(query)
-        try {
-          while (rs.next()) {
-            val item = CartItem(
-              rs.getInt("productId"),
-              rs.getLong("timestamp"),
-              rs.getInt("quantity")
-            )
-
-            cartItems = cartItems :+ item
-          }
-        } finally {
-          rs.close()
-        }
-      } finally {
-        stmt.close()
-      }
-    } finally {
-      connection.close()
-    }
-    cartItems
   }
 
   /**

@@ -12,6 +12,11 @@ import com.bridgelabz.bookstore.models.{Address, Product}
  */
 abstract class MySqlUtils[T] {
 
+  /**
+   *
+   * @param query to tbe executed [belongs to DDL]
+   * @return true/false depending on the status of the operation
+   */
   protected def execute(query: String): Boolean = {
 
     var successful: Boolean = false
@@ -30,6 +35,11 @@ abstract class MySqlUtils[T] {
     successful
   }
 
+  /**
+   *
+   * @param query to tbe executed [belongs to DML]
+   * @return int representing the number of rows affected/ updated
+   */
   protected def executeUpdate(query: String): Int = {
     var successful: Int = 0
     val connection = MySqlConfig.getConnection(MySqlConnection())
@@ -46,6 +56,11 @@ abstract class MySqlUtils[T] {
     successful
   }
 
+  /**
+   *
+   * @param query to tbe executed [belongs to DQL]
+   * @return Sequence of items- each item representing each row in the MySQL table
+   */
   protected def executeQuery(query: String): Seq[T] = {
     var sequence = Seq[T]()
     val connection = MySqlConfig.getConnection(MySqlConnection())
