@@ -57,7 +57,7 @@ object Main extends App with OutputMessageJsonSupport {
   val userCollection: ICrudRepository[User] = DatabaseFactory[User](Collections.USER, Databases.MONGODB)
   val otpCollection: ICrudRepository[Otp] = DatabaseFactory[Otp](Collections.OTP, Databases.MONGODB)
   val productCollection: ICrudRepository[Product] = DatabaseFactory[Product](Collections.PRODUCT, Databases.MONGODB)
-  val wishListCollection: ICrudRepository[WishList] = DatabaseFactory[WishList](Collections.WISHLIST, Databases.MYSQL)
+  val wishListCollection: ICrudRepository[WishList] = DatabaseFactory[WishList](Collections.WISHLIST, Databases.MONGODB)
   val cartCollection: ICrudRepository[Cart] = DatabaseFactory[Cart](Collections.CART, Databases.MONGODB)
 
   val defaultUserManager: IUserManager = new UserManager2(
@@ -83,6 +83,14 @@ object Main extends App with OutputMessageJsonSupport {
     productCollection
   )
 
+  /**
+   *
+   * @param userManager which manages the connection between routes and user collection/ table
+   * @param productManager which manages the connection between routes and product collection/ table
+   * @param wishListManager which manages the connection between routes and wishlist collection/ table
+   * @param cartLisManager which manages the connection between routes and cart collection/ table
+   * @return the Route object that can be bound to the server
+   */
   def route(userManager: IUserManager,
             productManager: IProductManager,
             wishListManager: IWishListManager,

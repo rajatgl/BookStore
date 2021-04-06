@@ -14,6 +14,9 @@ object MySqlConfig {
   private var driverLoaded = false
   val logger: Logger = Logger("MySql Config")
 
+  /**
+   * load the JDBC driver for MySQL
+   */
   private def loadDriver() {
     try {
       Class.forName("com.mysql.jdbc.Driver").newInstance
@@ -25,6 +28,11 @@ object MySqlConfig {
     }
   }
 
+  /**
+   *
+   * @param dbc specifying the MySqlConnection [port and host]
+   * @return a successful MySqlConnection else throw an exception
+   */
   def getConnection(dbc: MySqlConnection): Connection = {
     // Only load driver first time
     this.synchronized {

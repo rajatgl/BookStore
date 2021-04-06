@@ -5,7 +5,7 @@ import java.util.Date
 import akka.http.javadsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives.{complete, entity, get, headerValueByName, onComplete, parameters, path, post, _}
 import akka.http.scaladsl.server.{Directives, Route}
-import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, ProductDoesNotExistException, UnverifiedAccountException}
+import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, IBookStoreException, ProductDoesNotExistException, UnverifiedAccountException}
 import com.bridgelabz.bookstore.interfaces.IProductManager
 import com.bridgelabz.bookstore.jwt.TokenManager
 import com.bridgelabz.bookstore.marshallers.{AddProductJsonSupport, OutputMessageJsonSupport}
@@ -26,7 +26,7 @@ class ProductRoutes(productManager: IProductManager)
    * @return : If user authorized and product added returns Ok or else returns UnAuthorized
    */
   def addProductRoute: Route = post {
-    path("addProduct") {
+    path("product") {
       entity(Directives.as[Product]) { request =>
         headerValueByName("Authorization") { token =>
           if (TokenManager.isValidToken(token.split(" ")(1))) {
@@ -43,10 +43,8 @@ class ProductRoutes(productManager: IProductManager)
               case Failure(exception) =>
                 logger.error(s"Error occurred at ${new Date().getTime}: Exception reads: ${exception.getMessage}")
                 exception match {
-                  case accountNotFoundEx: AccountDoesNotExistException =>
-                    complete(accountNotFoundEx.status() -> OutputMessage(accountNotFoundEx.status(), accountNotFoundEx.getMessage))
-                  case unverifiedEx: UnverifiedAccountException =>
-                    complete(unverifiedEx.status() -> OutputMessage(unverifiedEx.status(), unverifiedEx.getMessage))
+                  case exception: IBookStoreException =>
+                    complete(exception.status() -> OutputMessage(exception.status(), exception.getMessage))
                   case _ =>
                     complete(StatusCodes.INTERNAL_SERVER_ERROR.intValue() -> OutputMessage(StatusCodes.INTERNAL_SERVER_ERROR.intValue(),
                       "An internal error occurred. Contact the admin."))
@@ -79,8 +77,8 @@ class ProductRoutes(productManager: IProductManager)
           case Failure(exception) =>
             logger.error(s"Error occurred at ${new Date().getTime}: Exception reads: ${exception.getMessage}")
             exception match {
-              case productNotFound: ProductDoesNotExistException =>
-                complete(productNotFound.status() -> OutputMessage(productNotFound.status(), productNotFound.getMessage))
+              case exception: IBookStoreException =>
+                complete(exception.status() -> OutputMessage(exception.status(), exception.getMessage))
               case _ =>
                 complete(StatusCodes.INTERNAL_SERVER_ERROR.intValue() -> OutputMessage(StatusCodes.INTERNAL_SERVER_ERROR.intValue(),
                   "An internal error occurred. Contact the admin."))

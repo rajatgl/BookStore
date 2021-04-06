@@ -18,6 +18,12 @@ class WishListManager(wishListCollection: ICrudRepository[WishList],
 
   extends IWishListManager {
 
+  /**
+   *
+   * @param userId belonging to the user who is adding an item to the wishlist
+   * @param item that is being added to the cart
+   * @return future of true/false depending on the success of the addition operation
+   */
   def addItem(userId: String, item: WishListItem): Future[Boolean] = {
 
     val checks = for {
@@ -46,6 +52,11 @@ class WishListManager(wishListCollection: ICrudRepository[WishList],
 
   }
 
+  /**
+   *
+   * @param userId belonging to the user who's wishlist items are to be fetched
+   * @return a list of Wishlist Products belonging to the user
+   */
   def getItems(userId: String): Future[Seq[WishListProduct]] = {
     verifyUserId(userId).flatMap(_ => {
       val checks = for {
@@ -64,6 +75,12 @@ class WishListManager(wishListCollection: ICrudRepository[WishList],
     })
   }
 
+  /**
+   *
+   * @param userId belonging to the user who is removing an item from the wishlist
+   * @param productId of the product that is being removed from the wishlist
+   * @return future of true/ false depending on the status of the deletion operation
+   */
   def removeItem(userId: String, productId: Int): Future[Boolean] = {
 
     val checks = for {
@@ -95,6 +112,13 @@ class WishListManager(wishListCollection: ICrudRepository[WishList],
     }
   }
 
+  /**
+   *
+   * @param userId belonging to the user who is shifting a wishlist item to his/her cart
+   * @param productId belonging to the product that is being shifted from the wishlist to the cart
+   * @param quantity chosen for the product that is being added to the cart
+   * @return future of ture/false depending on the status of the shifting operation
+   */
   def addItemToCart(userId: String, productId: Int, quantity: Int): Future[Boolean] = {
     val checks = for {
       user <- verifyUserId(userId)
@@ -135,12 +159,22 @@ class WishListManager(wishListCollection: ICrudRepository[WishList],
     }
   }
 
+  /**
+   *
+   * @param userId to be searched for in the database
+   * @return the user who matches the search and if not found then None
+   */
   def getUserByUserId(userId: String): Future[Option[User]] = {
     userCollection.read(userId, "userId").map(seq => {
       seq.headOption
     })
   }
 
+  /**
+   *
+   * @param userId to be searched for in the database and is verified
+   * @return the user who matches the search [is verified] and if not found then None
+   */
   def verifyUserId(userId: String): Future[Option[User]] = {
     getUserByUserId(userId).map(optionalUser => {
 
@@ -158,8 +192,18 @@ class WishListManager(wishListCollection: ICrudRepository[WishList],
     })
   }
 
+  /**
+   *
+   * @param productId to be searched for in the database
+   * @return the product who matches the search and if not found then None
+   */
   def verifyProduct(productId: Int): Future[Option[Product]] = productCollection.read(productId, "productId").map(seq => seq.headOption)
 
+  /**
+   *
+   * @param userId who's cart items are to be searched for in the database
+   * @return the cart items that matches the search and if not found then empty sequence
+   */
   def getItemsByUserId(userId: String): Future[Seq[WishListItem]] = {
 
     wishListCollection.read(userId, "userId").map(wishLists => {

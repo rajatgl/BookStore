@@ -16,6 +16,7 @@ object CodecRepository extends Enumeration {
   val USER, OTP, PRODUCT, CART, WISHLIST = Value
 
 
+  //all codec providers and registries needed for MongoDB
   private val codecProviderForUser: CodecProvider = Macros.createCodecProvider[User]()
   private val codecProviderForAddress: CodecProvider = Macros.createCodecProvider[Address]()
   private val codecProviderForCart: CodecProvider = Macros.createCodecProvider[Cart]()
@@ -48,6 +49,11 @@ object CodecRepository extends Enumeration {
     DEFAULT_CODEC_REGISTRY
   )
 
+  /**
+   *
+   * @param codecName represents the codec being fetched
+   * @return the codec registry that is represented by the codec name
+   */
   def getCodecRegistry(codecName: CodecNames): CodecRegistry = {
     codecName match{
       case USER => codecRegistryForUser

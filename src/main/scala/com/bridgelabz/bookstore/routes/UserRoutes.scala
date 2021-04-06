@@ -6,7 +6,7 @@ import akka.http.javadsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Directives.{complete, entity, headerValueByName, onComplete, parameters, path, post, respondWithHeaders}
 import akka.http.scaladsl.server.{Directives, Route}
-import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, BadEmailPatternException, PasswordMismatchException, UnverifiedAccountException}
+import com.bridgelabz.bookstore.exceptions.{AccountDoesNotExistException, BadEmailPatternException, IBookStoreException, PasswordMismatchException, UnverifiedAccountException}
 import com.bridgelabz.bookstore.interfaces.IUserManager
 import com.bridgelabz.bookstore.jwt.TokenManager
 import com.bridgelabz.bookstore.marshallers.{AddAddressJsonSupport, LoginJsonSupport, OutputMessageJsonSupport, RegisterJsonSupport}
@@ -81,14 +81,8 @@ class UserRoutes(userManager: IUserManager)
           case Failure(exception) =>
             logger.error(s"Error occurred at ${new Date().getTime}: Exception reads: ${exception.getMessage}")
             exception match {
-              case badEmailEx: BadEmailPatternException =>
-                complete(badEmailEx.status() -> OutputMessage(badEmailEx.status(), badEmailEx.getMessage))
-              case accountNotFoundEx: AccountDoesNotExistException =>
-                complete(accountNotFoundEx.status() -> OutputMessage(accountNotFoundEx.status(), accountNotFoundEx.getMessage))
-              case incorrectPasswordEx: PasswordMismatchException =>
-                complete(incorrectPasswordEx.status() -> OutputMessage(incorrectPasswordEx.status(), incorrectPasswordEx.getMessage))
-              case unverifiedEx: UnverifiedAccountException =>
-                complete(unverifiedEx.status() -> OutputMessage(unverifiedEx.status(), unverifiedEx.getMessage))
+              case exception: IBookStoreException =>
+                complete(exception.status() -> OutputMessage(exception.status(), exception.getMessage))
               case _ =>
                 complete(StatusCodes.INTERNAL_SERVER_ERROR.intValue() -> OutputMessage(StatusCodes.INTERNAL_SERVER_ERROR.intValue(),
                   "An internal error occurred. Contact the admin."))
@@ -122,10 +116,8 @@ class UserRoutes(userManager: IUserManager)
               case Failure(exception) =>
                 logger.error(s"Error occurred at ${new Date().getTime}: Exception reads: ${exception.getMessage}")
                 exception match {
-                  case accountNotFoundEx: AccountDoesNotExistException =>
-                    complete(accountNotFoundEx.status() -> OutputMessage(accountNotFoundEx.status(), accountNotFoundEx.getMessage))
-                  case unverifiedEx: UnverifiedAccountException =>
-                    complete(unverifiedEx.status() -> OutputMessage(unverifiedEx.status(), unverifiedEx.getMessage))
+                  case exception: IBookStoreException =>
+                    complete(exception.status() -> OutputMessage(exception.status(), exception.getMessage))
                   case _ =>
                     complete(StatusCodes.INTERNAL_SERVER_ERROR.intValue() -> OutputMessage(StatusCodes.INTERNAL_SERVER_ERROR.intValue(),
                       "An internal error occurred. Contact the admin."))
@@ -162,10 +154,8 @@ class UserRoutes(userManager: IUserManager)
             case Failure(exception) =>
               logger.error(s"Error occurred at ${new Date().getTime}: Exception reads: ${exception.getMessage}")
               exception match {
-                case accountNotFoundEx: AccountDoesNotExistException =>
-                  complete(accountNotFoundEx.status() -> OutputMessage(accountNotFoundEx.status(), accountNotFoundEx.getMessage))
-                case unverifiedEx: UnverifiedAccountException =>
-                  complete(unverifiedEx.status() -> OutputMessage(unverifiedEx.status(), unverifiedEx.getMessage))
+                case exception: IBookStoreException =>
+                  complete(exception.status() -> OutputMessage(exception.status(), exception.getMessage))
                 case _ =>
                   complete(StatusCodes.INTERNAL_SERVER_ERROR.intValue() -> OutputMessage(StatusCodes.INTERNAL_SERVER_ERROR.intValue(),
                     "An internal error occurred. Contact the admin."))

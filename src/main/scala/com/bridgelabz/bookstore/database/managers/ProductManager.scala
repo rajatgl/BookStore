@@ -39,6 +39,11 @@ class ProductManager(productCollection : ICrud[Product], userCollection : ICrud[
     })
   }
 
+  /**
+   *
+   * @param userId to be searched for in the database
+   * @return the user who matches the search and if not found then None
+   */
   def getUserByUserId(userId: String): Future[Option[User]] = {
     userCollection.read().map(users => {
       var searchedUser:Option[User] = None
