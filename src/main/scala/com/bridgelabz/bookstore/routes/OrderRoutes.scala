@@ -28,9 +28,9 @@ class OrderRoutes(orderManager: IOrderManager)
           if (TokenManager.isValidToken(token.split(" ")(1))) {
             val userId = TokenManager.getIdentifier(token.split(" ")(1))
             onComplete(orderManager.placeOrder(userId, request.transactionId, request.deliveryAddressIndex)) {
-              case Success(_) => complete(StatusCodes.OK.intValue ->
+              case Success(value) => complete(StatusCodes.OK.intValue ->
                 OutputMessage(StatusCodes.OK.intValue,
-                  "order placed successfully."))
+                  s"order placed successfully, orderId: $value."))
               case Failure(exception) =>
                 logger.error(s"Error occurred at ${new Date().getTime}: Exception reads: ${exception.getMessage}")
                 exception match {
