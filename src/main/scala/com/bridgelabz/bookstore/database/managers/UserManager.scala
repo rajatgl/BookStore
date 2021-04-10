@@ -90,6 +90,7 @@ class UserManager(userCollection: ICrud[User], otpCollection: ICrud[Otp])
       if (otpExists) {
         verifyUserEmail(token.email)
         otpCollection.delete(token.email, "email")
+        logger.info(s"Otp: ${token.data} used at ${new Date().getTime}")
         true
       }
       else{

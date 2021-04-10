@@ -1,6 +1,6 @@
 package com.bridgelabz.bookstoretest
 
-import com.bridgelabz.bookstore.models.{Address, Cart, CartItem, Otp, Price, Product, User, WishList, WishListItem}
+import com.bridgelabz.bookstore.models.{Address, Cart, CartItem, Order, Otp, Price, Product, User, WishList, WishListItem}
 
 /**
  * Created on 3/5/2021.
@@ -13,7 +13,7 @@ object TestVariables {
   def user(userId: String = "test502",
            userName: String = "Test",
            mobileNumber: String = "1234567891",
-           addresses: Seq[Address] = Seq(),
+           addresses: Seq[Address] = Seq(address()),
            email: String = "test@test.com",
            password: String = "",
            verificationComplete: Boolean = false): User =
@@ -74,5 +74,16 @@ object TestVariables {
             grandTotal: Double = 3390): Price =
 
     Price(totalPrice,taxPrice,grandTotal)
+
+  def order(userId: String = user().userId,
+            orderId: String = "test",
+            transactionId: String = "test",
+            deliveryAddress: Address = address(),
+            items: Seq[CartItem] = cartTest().items,
+            status: String = "order placed",
+            orderTimestamp: Long = 1616838811,
+            deliveryTimestamp: Long = 1616838811 + (5*24*60*60*1000)): Order =
+
+    Order(userId,orderId,transactionId,deliveryAddress,items,status,orderTimestamp,deliveryTimestamp)
 
 }
