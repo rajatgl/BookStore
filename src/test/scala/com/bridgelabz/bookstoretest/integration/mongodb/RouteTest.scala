@@ -200,9 +200,9 @@ class RouteTest extends AnyWordSpec
     }
 
     "utility to delete added users" in {
-      userDatabase.collection().drop()
-      otpDatabase.collection().drop()
-      productDatabase.collection().drop()
+      userDatabase.collection.drop()
+      otpDatabase.collection.drop()
+      productDatabase.collection.drop()
     }
   }
 }

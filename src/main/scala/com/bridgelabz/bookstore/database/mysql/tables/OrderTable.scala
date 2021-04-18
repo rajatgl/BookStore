@@ -37,21 +37,16 @@ class OrderTable(tableName: String,productTableName : String, userTableName: Str
           entity.deliveryTimestamp
         )
       )
-
-      for (address <- entity.deliveryAddress) {
-
         mySqlAddressTable.create(
           MySqlAddress(
             entity.userId,
-            address.apartmentNumber,
-            address.apartmentName,
-            address.streetAddress,
-            address.landMark,
-            address.state,
-            address.pinCode
-          )
+            entity.deliveryAddress.apartmentName,
+            entity.deliveryAddress.apartmentNumber,
+            entity.deliveryAddress.streetAddress,
+            entity.deliveryAddress.landMark,
+            entity.deliveryAddress.state,
+            entity.deliveryAddress.pinCode)
         )
-      }
 
       for(item <- entity.items){
         mySqlCartItemTable.create(
@@ -109,7 +104,7 @@ class OrderTable(tableName: String,productTableName : String, userTableName: Str
           mySqlOrder.userId,
           mySqlOrder.orderId,
           mySqlOrder.transactionId,
-          addresses,
+          addresses.asInstanceOf[Address],
           items,
           mySqlOrder.status,
           mySqlOrder.orderTimestamp,
@@ -142,19 +137,17 @@ class OrderTable(tableName: String,productTableName : String, userTableName: Str
     mySqlAddressTable.delete(entity.userId, "userId")
     mySqlCartItemTable.delete(entity.userId,"userId")
 
-    for (address <- entity.deliveryAddress) {
-      mySqlAddressTable.create(
-        MySqlAddress(
-          entity.userId,
-          address.apartmentNumber,
-          address.apartmentName,
-          address.streetAddress,
-          address.landMark,
-          address.state,
-          address.pinCode
-        )
-      )
-    }
+    mySqlAddressTable.create(
+      MySqlAddress(
+        entity.userId,
+        entity.deliveryAddress.apartmentName,
+        entity.deliveryAddress.apartmentNumber,
+        entity.deliveryAddress.streetAddress,
+        entity.deliveryAddress.landMark,
+        entity.deliveryAddress.state,
+        entity.deliveryAddress.pinCode)
+    )
+
     for(item <- entity.items){
       mySqlCartItemTable.create(
         MySqlCartItem(

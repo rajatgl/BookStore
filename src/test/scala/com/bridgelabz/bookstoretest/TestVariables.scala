@@ -75,15 +75,25 @@ object TestVariables {
 
     Price(totalPrice,taxPrice,grandTotal)
 
-  def order(userId : String = user().userId,
-            orderId : String = "ICN11111222",
-            transactionId : String = "32653625246",
-            deliveryAddress: Seq[Address] = Seq(address()),
-            items : Seq[CartItem] = Seq(CartItem(1,
-              1616838811,1)),
-            status : String = "Placed",
-            orderTimestamp : Long = 14646463,
-            deliveryTimestamp : Long = 7464437
-           ) : Order = Order(userId,orderId,transactionId,deliveryAddress,items,status,orderTimestamp,deliveryTimestamp)
+//  def order(userId : String = user().userId,
+//            orderId : String = "ICN11111222",
+//            transactionId : String = "32653625246",
+//            deliveryAddress: Seq[Address] = Seq(),
+//            items : Seq[CartItem] = Seq(CartItem(1,
+//              1616838811,1)),
+//            status : String = "Placed",
+//            orderTimestamp : Long = 14646463,
+//            deliveryTimestamp : Long = 7464437
+//           ) : Order = Order(userId,orderId,transactionId,deliveryAddress,items,status,orderTimestamp,deliveryTimestamp)
+  def order(userId: String = user().userId,
+            orderId: String = "test",
+            transactionId: String = "test",
+            deliveryAddress: Address = `address`(),
+            items: Seq[CartItem] = cartTest().items,
+            status: String = "order placed",
+            orderTimestamp: Long = 1616838811,
+            deliveryTimestamp: Long = 1616838811 + (5*24*60*60*1000)): Order =
+
+    Order(userId,orderId,transactionId,deliveryAddress,items,status,orderTimestamp,deliveryTimestamp)
 
 }
