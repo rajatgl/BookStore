@@ -14,6 +14,7 @@ object ExceptionMessages {
     "PRODUCT_DOES_NOT_EXIST" -> "PRODUCT NOT FOUND: Product you are searching for does not exists.",
     "PRODUCT_QUANTITY_UNAVAILABLE" -> "PRODUCT QUANTITY UNAVAILABLE: Product requested is not available in the required quantity.",
     "WISHLIST_DOES_NOT_EXIST" -> "WISHLIST DOES NOT EXIST: Wishlist requested does not exist.",
-    "CART_DOES_NOT_EXIST" -> "CART DOES NOT EXIST: Cart requested does not exist."
+    "CART_DOES_NOT_EXIST" -> "CART DOES NOT EXIST: Cart requested does not exist.",
+    "ADDRESS_NOT_FOUND" -> "ADDRESS_NOT_FOUND: requested address does not exist."
   )
 }

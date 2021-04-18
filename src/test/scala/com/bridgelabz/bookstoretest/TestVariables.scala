@@ -13,7 +13,7 @@ object TestVariables {
   def user(userId: String = "test502",
            userName: String = "Test",
            mobileNumber: String = "1234567891",
-           addresses: Seq[Address] = Seq(),
+           addresses: Seq[Address] = Seq(address()),
            email: String = "test@test.com",
            password: String = "",
            verificationComplete: Boolean = false): User =
@@ -78,7 +78,7 @@ object TestVariables {
   def order(userId : String = user().userId,
             orderId : String = "ICN11111222",
             transactionId : String = "32653625246",
-            deliveryAddress: Seq[Address] = Seq(),
+            deliveryAddress: Seq[Address] = Seq(address()),
             items : Seq[CartItem] = Seq(CartItem(1,
               1616838811,1)),
             status : String = "Placed",
