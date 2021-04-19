@@ -75,16 +75,6 @@ object TestVariables {
 
     Price(totalPrice,taxPrice,grandTotal)
 
-//  def order(userId : String = user().userId,
-//            orderId : String = "ICN11111222",
-//            transactionId : String = "32653625246",
-//            deliveryAddress: Seq[Address] = Seq(),
-//            items : Seq[CartItem] = Seq(CartItem(1,
-//              1616838811,1)),
-//            status : String = "Placed",
-//            orderTimestamp : Long = 14646463,
-//            deliveryTimestamp : Long = 7464437
-//           ) : Order = Order(userId,orderId,transactionId,deliveryAddress,items,status,orderTimestamp,deliveryTimestamp)
   def order(userId: String = user().userId,
             orderId: String = "test",
             transactionId: String = "test",
