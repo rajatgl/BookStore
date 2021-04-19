@@ -6,12 +6,12 @@ import akka.http.scaladsl.model.{HttpEntity, HttpMethods, HttpRequest, MediaType
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.util.ByteString
 import com.bridgelabz.bookstore.database.interfaces.ICrudRepository
-import com.bridgelabz.bookstore.database.managers.upgraded.{CartManager, ProductManager2, UserManager2, WishListManager}
+import com.bridgelabz.bookstore.database.managers.upgraded.{CartManager, OrderManager, ProductManager2, UserManager2, WishListManager}
 import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection2}
-import com.bridgelabz.bookstore.database.mysql.tables.upgraded.{CartTableById, ProductTable2, UserTable2, WishListTableById}
+import com.bridgelabz.bookstore.database.mysql.tables.upgraded.{CartTableById, OrderTableById, ProductTable2, UserTable2, WishListTableById}
 import com.bridgelabz.bookstore.jwt.TokenManager
 import com.bridgelabz.bookstore.models._
-import com.bridgelabz.bookstore.routes.{CartRoutes, ProductRoutes, UserRoutes, WishListRoutes}
+import com.bridgelabz.bookstore.routes.{CartRoutes, OrderRoutes, ProductRoutes, UserRoutes, WishListRoutes}
 import com.bridgelabz.bookstoretest.TestVariables
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.wordspec.AnyWordSpec
@@ -40,62 +40,21 @@ class RouteTestMySql extends AnyWordSpec
 
   val wishListDatabase: ICrudRepository[WishList] = new WishListTableById("wishlistTest", "productTest", "userTestUsers")
 
+  val orderDatabase : ICrudRepository[Order] = new OrderTableById("orderTest","productTest","userTestUsers")
+
   val userManager: UserManager2 = new UserManager2(userDatabase, otpDatabase)
   val productManager: ProductManager2 = new ProductManager2(productDatabase, userDatabase)
   val cartManager: CartManager = new CartManager(cartDatabase, userDatabase, productDatabase)
   val wishListManager: WishListManager = new WishListManager(wishListDatabase, userDatabase, productDatabase, cartDatabase)
-
+  val orderManager : OrderManager = new OrderManager(orderDatabase,userDatabase,cartDatabase,productDatabase)
 
   lazy val routes: UserRoutes = new UserRoutes(userManager)
   lazy val productRoutes: ProductRoutes = new ProductRoutes(productManager)
   lazy val cartRoutes: CartRoutes = new CartRoutes(cartManager)
   lazy val wishListRoutes: WishListRoutes = new WishListRoutes(wishListManager)
+  lazy val orderRoutes : OrderRoutes = new OrderRoutes(orderManager)
 
   "The service" should {
-
-    "Routes should register a test account for a Post request to /register" in {
-
-      val jsonRequest = ByteString(
-        s"""
-            {
-              "userName": "${TestVariables.user().userName}",
-              "mobileNumber": "${TestVariables.user().mobileNumber}",
-              "email": "${TestVariables.user().email}",
-              "password": "${TestVariables.user().password}"
-            }
-        """.stripMargin
-      )
-      val postRequest = HttpRequest(
-        HttpMethods.POST,
-        uri = "/register",
-        entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
-      )
-
-      postRequest ~> routes.registerRoute ~> check {
-        assert(status === StatusCodes.OK)
-      }
-    }
-
-    "Routes should fail to login a test account for a Post request to /login with unverified email" in {
-
-      val jsonRequest = ByteString(
-        s"""
-            {
-              "email": "${TestVariables.user().email}",
-              "password": "${TestVariables.user().password}"
-            }
-        """.stripMargin
-      )
-      val postRequest = HttpRequest(
-        HttpMethods.POST,
-        uri = "/login",
-        entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
-      )
-
-      postRequest ~> routes.loginRoute ~> check {
-        assert(status === StatusCodes.UNAUTHORIZED)
-      }
-    }
 
     "Utility test to verify the user" in {
       userManager.verifyUserEmail(TestVariables.user().email)
@@ -185,7 +144,7 @@ class RouteTestMySql extends AnyWordSpec
 
       val postRequest = HttpRequest(
         HttpMethods.POST,
-        uri = "/addProduct",
+        uri = "/product",
         entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
       )
 
@@ -334,27 +293,6 @@ class RouteTestMySql extends AnyWordSpec
       check {
         status.equals(StatusCodes.UNAUTHORIZED)
       }
-  }
-
-  "Route should remove an item from the cart for Delete request to /cart/remove" in {
-
-    val jsonRequest = ByteString(
-      s"""
-         |{
-         |    "productId": ${TestVariables.cartTest().items.head.productId}
-         |}
-         |""".stripMargin
-    )
-
-    val postRequest = HttpRequest(
-      HttpMethods.DELETE,
-      uri = "/cart/remove",
-      entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
-    )
-
-    postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> cartRoutes.removeItem ~> check {
-      assert(status === StatusCodes.OK)
-    }
   }
 
   """Route should fail to remove an item from the cart for
@@ -520,26 +458,26 @@ class RouteTestMySql extends AnyWordSpec
       }
   }
 
-  "Route should remove an item to a wish-list for Delete request to /wishlist/remove" in {
-
-    val jsonRequest = ByteString(
-      s"""
-         |{
-         |    "productId": ${TestVariables.wishListTest().items.head.productId}
-         |}
-         |""".stripMargin
-    )
-
-    val postRequest = HttpRequest(
-      HttpMethods.DELETE,
-      uri = "/wishlist/remove",
-      entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
-    )
-
-    postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> wishListRoutes.removeItem ~> check {
-      assert(status === StatusCodes.OK)
-    }
-  }
+//  "Route should remove an item to a wish-list for Delete request to /wishlist/remove" in {
+//
+//    val jsonRequest = ByteString(
+//      s"""
+//         |{
+//         |    "productId": ${TestVariables.wishListTest().items.head.productId}
+//         |}
+//         |""".stripMargin
+//    )
+//
+//    val postRequest = HttpRequest(
+//      HttpMethods.DELETE,
+//      uri = "/wishlist/remove",
+//      entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
+//    )
+//
+//    postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> wishListRoutes.removeItem ~> check {
+//      assert(status === StatusCodes.OK)
+//    }
+//  }
 
   "Route should fail to remove an item to a wish-list for Delete request to /wishlist/remove due to AccountDoesNotExistException" in {
 
@@ -601,6 +539,152 @@ class RouteTestMySql extends AnyWordSpec
 
     postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> wishListRoutes.removeItem ~> check {
       assert(status === StatusCodes.NOT_FOUND)
+    }
+  }
+  // Order Tests
+
+  // Get Orders Routes
+  "This service" should {
+
+    """Route should fail to fetch user orders for
+      | Get request to /orders
+      | with AccountDoesNotExistException""".stripMargin in {
+
+
+      Get("/orders") ~>
+        addCredentials(OAuth2BearerToken(TokenManager.generateToken(TestVariables.user().userId))) ~>
+        orderRoutes.getOrders ~>
+        check {
+          status.equals(StatusCodes.UNAUTHORIZED)
+        }
+    }
+
+    """Route should fail to fetch user orders for
+      | Get request to /orders
+      | with UnverifiedAccountException""".stripMargin in {
+
+
+      Get("/orders") ~>
+        addCredentials(OAuth2BearerToken(TokenManager.generateToken(TestVariables.user().userId))) ~>
+        orderRoutes.getOrders ~>
+        check {
+          status.equals(StatusCodes.UNAUTHORIZED)
+        }
+    }
+
+
+    "Route should fetch all user orders for Get request to /orders" in {
+
+      Get("/orders") ~>
+        addCredentials(OAuth2BearerToken(TokenManager.generateToken(TestVariables.user().userId))) ~>
+        orderRoutes.getOrders ~>
+        check {
+          status.equals(StatusCodes.OK)
+        }
+    }
+  }
+
+  // Place Order Routes
+  "This service" should {
+
+    """Route should fail to place order for
+      | Post request to /order with
+      | AccountDoesNotExistException""".stripMargin in {
+
+      val jsonRequest = ByteString(
+        s"""
+           |{
+           |    "deliveryAddressIndex" : 0,
+           |     "transactionId" : "${TestVariables.order().transactionId}"
+           |}
+           |""".stripMargin
+      )
+
+      val postRequest = HttpRequest(
+        HttpMethods.POST,
+        uri = "/order",
+        entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
+      )
+
+      val authorization = TokenManager.generateToken(TestVariables.user().userId)
+
+      postRequest ~> addCredentials(OAuth2BearerToken(authorization)) ~> orderRoutes.placeOrder ~> check {
+        assert(status === StatusCodes.UNAUTHORIZED)
+      }
+    }
+
+    """Route should fail to place order for
+      | Post request to /order with
+      | UnverifiedAccountException""".stripMargin in {
+
+      val jsonRequest = ByteString(
+        s"""
+           |{
+           |    "deliveryAddressIndex" : 0,
+           |     "transactionId" : "${TestVariables.order().transactionId}"
+           |}
+           |""".stripMargin
+      )
+
+      val postRequest = HttpRequest(
+        HttpMethods.POST,
+        uri = "/order",
+        entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
+      )
+
+      val authorization = TokenManager.generateToken(TestVariables.user().userId)
+
+      postRequest ~> addCredentials(OAuth2BearerToken(authorization)) ~> orderRoutes.placeOrder ~> check {
+        assert(status === StatusCodes.UNAUTHORIZED)
+      }
+    }
+
+    """Route should fail to place order for
+      | Post request to /order with
+      | AddressNotFoundException""".stripMargin in {
+
+      val jsonRequest = ByteString(
+        s"""
+           |{
+           |    "deliveryAddressIndex" : 1,
+           |     "transactionId" : "${TestVariables.order().transactionId}"
+           |}
+           |""".stripMargin
+      )
+
+      val postRequest = HttpRequest(
+        HttpMethods.POST,
+        uri = "/order",
+        entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
+      )
+
+      postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> orderRoutes.placeOrder ~> check {
+        assert(status === StatusCodes.NOT_FOUND)
+      }
+    }
+
+    """Route should fail to place order for
+      | Post request to /order with
+      | ProductDoesNotExistException""".stripMargin in {
+
+      val jsonRequest = ByteString(
+        s"""
+           |{
+           |    "deliveryAddressIndex" : 0,
+           |     "transactionId" : "${TestVariables.order().transactionId}"
+           |}
+           |""".stripMargin
+      )
+
+      val postRequest = HttpRequest(
+        HttpMethods.POST,
+        uri = "/order",
+        entity = HttpEntity(MediaTypes.`application/json`, jsonRequest)
+      )
+
+      postRequest ~> addCredentials(OAuth2BearerToken(token)) ~> orderRoutes.placeOrder ~> check {
+        assert(status === StatusCodes.NOT_FOUND)
+      }
     }
   }
 }
