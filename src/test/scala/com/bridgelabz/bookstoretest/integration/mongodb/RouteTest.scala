@@ -5,7 +5,6 @@ import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import akka.http.scaladsl.model.{HttpEntity, HttpMethods, HttpRequest, MediaTypes}
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.util.ByteString
-import com.bridgelabz.bookstore.database.interfaces.ICrud
 import com.bridgelabz.bookstore.database.managers.{ProductManager, UserManager}
 import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection}
 import com.bridgelabz.bookstore.models._
@@ -200,9 +199,9 @@ class RouteTest extends AnyWordSpec
     }
 
     "utility to delete added users" in {
-      userDatabase.collection().drop()
-      otpDatabase.collection().drop()
-      productDatabase.collection().drop()
+      userDatabase.collection.drop()
+      otpDatabase.collection.drop()
+      productDatabase.collection.drop()
     }
   }
 }

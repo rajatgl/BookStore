@@ -11,6 +11,7 @@ import com.bridgelabz.bookstore.jwt.TokenManager
 import com.bridgelabz.bookstore.models._
 import com.bridgelabz.bookstore.routes.{CartRoutes, ProductRoutes, UserRoutes, WishListRoutes}
 import com.bridgelabz.bookstoretest.TestVariables
+import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
@@ -22,7 +23,8 @@ import org.scalatestplus.mockito.MockitoSugar
 class RouteTest extends AnyWordSpec
   with ScalatestRouteTest
   with MockitoSugar
-  with ScalaFutures {
+  with ScalaFutures
+  with BeforeAndAfterAll {
 
   var token: String = "invalid_token"
 
@@ -646,4 +648,6 @@ class RouteTest extends AnyWordSpec
       wishListDatabase.collection.drop()
     }
   }
+
+
 }
