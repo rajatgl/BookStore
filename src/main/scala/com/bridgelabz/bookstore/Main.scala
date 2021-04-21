@@ -6,12 +6,12 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives.{complete, extractUri, handleExceptions}
 import akka.http.scaladsl.server.{Directives, ExceptionHandler, Route}
 import com.bridgelabz.bookstore.database.interfaces.ICrudRepository
-import com.bridgelabz.bookstore.database.managers.upgraded.{CartManager, ProductManager2, UserManager2, WishListManager}
+import com.bridgelabz.bookstore.database.managers.upgraded.{CartManager, OrderManager, ProductManager2, UserManager2, WishListManager}
 import com.bridgelabz.bookstore.factory.{Collections, DatabaseFactory, Databases}
-import com.bridgelabz.bookstore.interfaces.{ICartManager, IProductManager, IUserManager, IWishListManager}
+import com.bridgelabz.bookstore.interfaces.{ICartManager, IOrderManager, IProductManager, IUserManager, IWishListManager}
 import com.bridgelabz.bookstore.marshallers.OutputMessageJsonSupport
-import com.bridgelabz.bookstore.models.{Cart, Otp, OutputMessage, Product, User, WishList}
-import com.bridgelabz.bookstore.routes.{CartRoutes, ProductRoutes, UserRoutes, WishListRoutes}
+import com.bridgelabz.bookstore.models.{Cart, Order, Otp, OutputMessage, Product, User, WishList}
+import com.bridgelabz.bookstore.routes.{CartRoutes, OrderRoutes, ProductRoutes, UserRoutes, WishListRoutes}
 import com.typesafe.scalalogging.Logger
 
 import scala.concurrent.ExecutionContext
@@ -59,6 +59,7 @@ object Main extends App with OutputMessageJsonSupport {
   val productCollection: ICrudRepository[Product] = DatabaseFactory[Product](Collections.PRODUCT, Databases.MONGODB)
   val wishListCollection: ICrudRepository[WishList] = DatabaseFactory[WishList](Collections.WISHLIST, Databases.MONGODB)
   val cartCollection: ICrudRepository[Cart] = DatabaseFactory[Cart](Collections.CART, Databases.MONGODB)
+  val orderCollection: ICrudRepository[Order] = DatabaseFactory[Order](Collections.ORDER, Databases.MONGODB)
 
   val defaultUserManager: IUserManager = new UserManager2(
     userCollection,
@@ -83,6 +84,13 @@ object Main extends App with OutputMessageJsonSupport {
     productCollection
   )
 
+  val defaultOrderManager: IOrderManager = new OrderManager(
+    orderCollection,
+    userCollection,
+    cartCollection,
+    productCollection
+  )
+
   /**
    *
    * @param userManager which manages the connection between routes and user collection/ table
@@ -94,12 +102,14 @@ object Main extends App with OutputMessageJsonSupport {
   def route(userManager: IUserManager,
             productManager: IProductManager,
             wishListManager: IWishListManager,
-            cartLisManager: ICartManager): Route = {
+            cartLisManager: ICartManager,
+            orderManager: IOrderManager): Route = {
 
     val userRoutes = new UserRoutes(userManager)
     val productRoutes = new ProductRoutes(productManager)
     val wishlistRoutes = new WishListRoutes(wishListManager)
     val cartRoutes = new CartRoutes(cartLisManager)
+    val orderRoutes = new OrderRoutes(orderManager)
 
     handleExceptions(exceptionHandler) {
       Directives.concat(
@@ -121,7 +131,10 @@ object Main extends App with OutputMessageJsonSupport {
         cartRoutes.addItem,
         cartRoutes.getItems,
         cartRoutes.removeItem,
-        cartRoutes.getPrice
+        cartRoutes.getPrice,
+        // order routes
+        orderRoutes.placeOrder,
+        orderRoutes.getOrders
       )
     }
   }
@@ -130,7 +143,8 @@ object Main extends App with OutputMessageJsonSupport {
   val binder = Http().newServerAt(host, port).bind(route(defaultUserManager,
     defaultProductManager,
     defaultWishListManager,
-    defaultCartManager))
+    defaultCartManager,
+    defaultOrderManager))
   binder.onComplete {
     case Success(serverBinding) => logger.info(s"Listening to ${serverBinding.localAddress}")
     case Failure(error) => logger.error(s"Error : ${error.getMessage}")

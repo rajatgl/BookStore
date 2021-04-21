@@ -7,5 +7,5 @@ package com.bridgelabz.bookstore.factory
  */
 object Collections extends Enumeration {
 
-  val USER, OTP, PRODUCT, WISHLIST, CART = Value
+  val USER, OTP, PRODUCT, WISHLIST, CART, ORDER = Value
 }

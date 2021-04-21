@@ -2,9 +2,9 @@ package com.bridgelabz.bookstore.factory
 
 import com.bridgelabz.bookstore.database.interfaces.ICrudRepository
 import com.bridgelabz.bookstore.database.mongodb.{CodecRepository, DatabaseCollection2}
-import com.bridgelabz.bookstore.database.mysql.tables.upgraded.{CartTableById, ProductTable2, UserTable2, WishListTableById}
+import com.bridgelabz.bookstore.database.mysql.tables.upgraded._
+import com.bridgelabz.bookstore.factory.Collections._
 import com.bridgelabz.bookstore.models._
-import Collections._
 
 /**
  * Database Factory Object for providing required database objects
@@ -28,6 +28,7 @@ object DatabaseFactory {
       case PRODUCT => getProductCollection(database).asInstanceOf[ICrudRepository[T]]
       case WISHLIST => getWishListCollection(database).asInstanceOf[ICrudRepository[T]]
       case CART => getCartCollection(database).asInstanceOf[ICrudRepository[T]]
+      case ORDER => getOrderCollection(database).asInstanceOf[ICrudRepository[T]]
     }
   }
 
@@ -78,4 +79,17 @@ object DatabaseFactory {
       case Databases.MYSQL => new WishListTableById("wishlist", "products", "users")
     }
   }
+
+  /**
+   *
+   * @param databaseType choose from the Enum of available databases
+   * @return the order collection/ table
+   */
+  def getOrderCollection(databaseType: Databases.Value): ICrudRepository[Order] = {
+    databaseType match {
+      case Databases.MONGODB => new DatabaseCollection2[Order]("order", CodecRepository.ORDER)
+      case Databases.MYSQL => new OrderTableById("order", "products", "users")
+    }
+  }
+
 }
