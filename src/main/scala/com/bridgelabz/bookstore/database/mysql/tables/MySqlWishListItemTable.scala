@@ -117,4 +117,3 @@ class MySqlWishListItemTable(tableName : String,tableNameForUser: String,tableNa
     cartItems
   }
 }
-

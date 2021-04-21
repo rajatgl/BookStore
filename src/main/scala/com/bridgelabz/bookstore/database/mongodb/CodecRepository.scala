@@ -13,7 +13,7 @@ import org.mongodb.scala.MongoClient.DEFAULT_CODEC_REGISTRY
 object CodecRepository extends Enumeration {
 
   type CodecNames = Value
-  val USER, OTP, PRODUCT, CART, WISHLIST = Value
+  val USER, OTP, PRODUCT, CART, WISHLIST, ORDER = Value
 
 
   //all codec providers and registries needed for MongoDB
@@ -49,6 +49,11 @@ object CodecRepository extends Enumeration {
     DEFAULT_CODEC_REGISTRY
   )
 
+  private val codecProviderForOrder: CodecProvider = Macros.createCodecProvider[Order]()
+  private val codecRegistryForOrder: CodecRegistry = CodecRegistries.fromRegistries(
+    CodecRegistries.fromProviders(codecProviderForOrder, codecProviderForAddress, codecProviderForCartItems),
+    DEFAULT_CODEC_REGISTRY
+  )
   /**
    *
    * @param codecName represents the codec being fetched
@@ -61,6 +66,7 @@ object CodecRepository extends Enumeration {
       case PRODUCT => codecRegistryForProduct
       case CART => codecRegistryForCart
       case WISHLIST => codecRegistryForWishList
+      case ORDER => codecRegistryForOrder
     }
   }
 

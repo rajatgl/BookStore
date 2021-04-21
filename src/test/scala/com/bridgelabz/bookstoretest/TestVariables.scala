@@ -78,7 +78,7 @@ object TestVariables {
   def order(userId: String = user().userId,
             orderId: String = "test",
             transactionId: String = "test",
-            deliveryAddress: Address = address(),
+            deliveryAddress: Address = `address`(),
             items: Seq[CartItem] = cartTest().items,
             status: String = "order placed",
             orderTimestamp: Long = 1616838811,
