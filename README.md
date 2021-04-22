@@ -16,6 +16,8 @@ BookStore is a scala based e-commerce application.
   
   or head over to sbt console of the project and execute below command:
   > sbt ~run
+    
+  use **Postman** or any other api gateways to observe the working.
  ## To run tests
   head over to sbt console of the project and execute:
   > sbt clean
