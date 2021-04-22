@@ -1,4 +1,5 @@
 # BookStore
+![Alt Text](https://img.shields.io/github/languages/code-size/rajatgl/BookStore)
 ![Alt Text](https://img.shields.io/github/last-commit/rajatgl/BookStore)
 
 BookStore is a scala based e-commerce application.
