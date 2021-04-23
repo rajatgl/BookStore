@@ -88,7 +88,7 @@ class OrderRoutes(orderManager: IOrderManager)
             complete(
               StatusCodes.Unauthorized.intValue ->
                 OutputMessage(StatusCodes.Unauthorized.intValue,
-                  "Token invalid, get items from wishlist unsuccessful.")
+                  "Token invalid, get items from items unsuccessful.")
             )
           }
         }

@@ -77,7 +77,7 @@ class OrderManager(orderCollection: ICrudRepository[Order],
     verifyUserId(userId).flatMap(_ =>
 
       if (orderId.isDefined) {
-        orderCollection.read(orderId, "orderId")
+        orderCollection.read(orderId.get, "orderId")
       }
       else {
         orderCollection.read(userId, "userId")
